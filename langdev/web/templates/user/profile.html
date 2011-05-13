@@ -1,0 +1,13 @@
+{% extends 'user/base.html' %}
+{% block body %}
+  <h1>{{ user.name }} (<code>{{ user.login }}</code>)</h1>
+  <dl>
+    {% if user.url %}
+      <dt>Website</dt>
+      <dd><a href="{{ user.url }}">{{ user.url }}</a></dd>
+    {% endif %}
+    <dt>Since</dt>
+    <dd><time datetime="{{ user.created_at.isoformat() }}">
+      {{ user.created_at }}</time></dd>
+  </dl>
+{% endblock %}
