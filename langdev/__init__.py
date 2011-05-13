@@ -3,7 +3,7 @@
 
 .. note::
 
-   This package is namespace package. You can extend the :mod:`idgraph`
+   This package is a namespace package. You can extend the :mod:`langdev`
    package in separated filesystem path. In order to do that, creates a
    folder named :file:`langdev`. Then, save the :file:`langdev/__init__.py`
    file of the following content::
