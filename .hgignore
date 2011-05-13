@@ -1,3 +1,4 @@
 syntax:glob
+LangDev.egg-info
 *.pyc
 *.swp
