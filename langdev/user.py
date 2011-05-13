@@ -15,7 +15,10 @@ import re
 import hashlib
 from sqlalchemy import *
 from sqlalchemy import orm
+from sqlalchemy.sql import functions
 import langdev.orm
+
+__all__ = 'User', 'Password'
 
 
 class User(langdev.orm.Base):
@@ -54,6 +57,10 @@ class User(langdev.orm.Base):
 
     #: His/her website.
     url = Column(UnicodeText)
+
+    #: Registered time in :class:`datetime.datetime`.
+    created_at = Column(DateTime(timezone=True), nullable=False,
+                                                 default=functions.now())
 
     @orm.validates(login)
     def validate_login(self, key, login):
@@ -136,8 +143,6 @@ class Password(object):
     #: Hash algorithm. MD5 is used.
     hash_algorithm = hashlib.md5
 
-    __slots__ = 'hash_string'
-
     def __init__(self, hash_string):
         if isinstance(hash_string, unicode):
             hash_string = hash_string.encode(self.ENCODING)
@@ -153,7 +158,7 @@ class Password(object):
             password = password.encode(self.ENCODING)
         if not isinstance(password, str):
             return False
-        return self.hash_algorithm(password).hexdigest == self.hash_string
+        return self.hash_algorithm(password).hexdigest() == self.hash_string
 
     def __ne__(self, password):
         return not (self == password)

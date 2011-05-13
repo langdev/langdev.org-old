@@ -31,6 +31,7 @@ setup(name='LangDev',
       author_email='minhee' '@' 'dahlia.kr',
       description='Programming language implementors and designers community.',
       packages=find_packages(),
+      install_requires=['SQLAlchemy', 'Flask', 'Werkzeug'],
       include_package_data=True,
       zip_safe=False,
       license='AGPLv3')
