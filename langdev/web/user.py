@@ -7,6 +7,9 @@
    :class:`~langdev.user.User` object.
 
 """
+import re
+import urllib2
+import werkzeug.urls
 from flask import *
 from langdev.user import User
 from langdev.web import before_request, render
@@ -81,7 +84,7 @@ def signin_form(error=False):
 
 @user.route('/f/signin', methods=['POST'])
 def signin():
-    login = request.form['login']
+    login = request.form['login'].strip().lower()
     password = request.form['password']
     try:
         user = g.session.query(User).filter_by(login=login)[0]
@@ -92,6 +95,44 @@ def signin():
             set_current_user(user)
             return redirect(url_for('profile', user_login=user.login))
     return signin_form(error=True)
+
+
+@user.route('/f/signup')
+def signup_form(recaptcha_error=None):
+    # ReCAPTCHA doesn't work on application/xhtml+xml.
+    response = render('user/signup_form', None,
+                      recaptcha_error=recaptcha_error)
+    if ('RECAPTCHA_PUBLIC_KEY' in current_app.config and
+        'RECAPTCHA_PRIVATE_KEY' in current_app.config and
+        re.match(r'^application/xhtml\+xml(;|$)', response.content_type)):
+        response.content_type = 'text/html'
+    return response
+
+
+@user.route('/', methods=['POST'])
+def signup():
+    if ('RECAPTCHA_PUBLIC_KEY' in current_app.config and
+        'RECAPTCHA_PRIVATE_KEY' in current_app.config):
+        r_params = {'privatekey': current_app.config['RECAPTCHA_PRIVATE_KEY'],
+                    'remoteip': request.remote_addr,
+                    'challenge': request.form['recaptcha_challenge_field'],
+                    'response': request.form['recaptcha_response_field']}
+        r = urllib2.urlopen('http://www.google.com/recaptcha/api/verify',
+                            data=werkzeug.urls.url_encode(r_params))
+        result = r.readlines()
+        if result[0].strip() == 'false':
+            response = signup_form(recaptcha_error=result[1].strip())
+            response.status_code = 400
+            return response
+    user = User(login=request.form['login'].strip(),
+                password=request.form['password'],
+                name=request.form['name'].strip(),
+                email=request.form['email'].strip(),
+                url=request.form['url'].strip())
+    with g.session.begin():
+        g.session.add(user)
+    set_current_user(user)
+    return redirect(url_for('profile', user_login=user.login), 302)
 
 
 @user.route('/<user_login>')

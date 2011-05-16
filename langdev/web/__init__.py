@@ -129,6 +129,9 @@ content_types = {'text/html': '.html', 'application/xhtml+xml': '.html',
                  'application/plist+xml': 'langdev.web.serializers:plist',
                  'application/x-plist': 'langdev.web.serializers:plist'}
 
+#: The default content type (MIME type) that is used for :mimetype:`*/*`.
+default_content_type = 'text/html'
+
 
 def create_app(modifier=None, config_filename=None):
     """An application factory. It sets up the application then returns

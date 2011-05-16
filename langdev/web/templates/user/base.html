@@ -1,8 +1,14 @@
+{%- macro static_url_for(filename) -%}
+  {%- set url = url_for('.static', filename=filename) -%}
+  {%- if config['DEBUG'] -%} {{ url.replace('.min.', '.') }}
+  {%- else -%} {{ url }} {%- endif -%}
+{%- endmacro -%}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
     <title>{% block title -%} LangDev {%- endblock %}</title>
+    <script src="{{ static_url_for('jquery-1.6.1.min.js') }}"></script>
   </head>
   <body>
     {% block body %}
