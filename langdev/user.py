@@ -29,7 +29,7 @@ class User(langdev.orm.Base):
                                ur'\u3200-\u321e\u3260-\u327e\ua960-\ua97c'
                                ur'\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb'
                                ur'\uffa0-\uffbe\uffc2-\uffc7\uffca-\uffcf'
-                               ur'\uffd2-\uffd7\uffda-\uffdc]{2,}$')
+                               ur'\uffd2-\uffd7\uffda-\uffdc]{2,45}$')
 
     #: The :mod:`re` pattern that matches to valid email addresses.
     EMAIL_PATTERN = re.compile(ur"^[a-z0-9!#$%&'*+/=?^_`{|}~-]+"

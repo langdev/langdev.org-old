@@ -1,0 +1,33 @@
+{% macro render_form(form, action, method) %}
+  <form action="{{ action }}"
+        method="{{ method.lower() == 'get' and 'get' or 'post' }}">
+    <fieldset>
+      {% if method.lower() not in ('get', 'post') %}
+        <input type="hidden" name="__method__" value="{{ method }}" />
+      {% endif %}
+      {% for field in form %}
+        {{ render_field(field, form.errors[field.name]) }}
+      {% endfor %}
+    </fieldset>
+  </form>
+{% endmacro %}
+
+{% macro render_field(field, errors=[]) %}
+  {% if field.type == 'HiddenField' %}
+    {{ field() }}
+  {% else %}
+    <div class="{{ field.name }} {{ field.flags.__dict__.keys()|join(' ') }}">
+      {% if field.type != 'SubmitField' %}
+        {{ field.label }}
+      {% endif %}
+      {{ field()|safe }}
+      {% if errors %}
+        <ul>
+          {% for error in errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endmacro %}

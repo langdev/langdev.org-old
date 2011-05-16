@@ -11,6 +11,7 @@ import re
 import urllib2
 import werkzeug.urls
 from flask import *
+from flaskext.wtf import *
 from langdev.user import User
 from langdev.web import before_request, render
 
@@ -77,31 +78,79 @@ def signout():
     return redirect(return_url)
 
 
+class SignInForm(Form):
+    login = TextField('Login name',
+                      validators=[Required(), Length(2, 45),
+                                  Regexp(User.LOGIN_PATTERN)])
+    password = PasswordField('Password', validators=[Required()])
+    submit = SubmitField('Login')
+
+    def validate_login(form, field):
+        if g.session.query(User).filter_by(login=field.data).count() < 1:
+            raise ValidationError('There is no {0}.'.format(field.data))
+
+    def validate_password(form, field):
+        try:
+            user = g.session.query(User).filter_by(login=form.login.data)[0]
+        except IndexError:
+            pass
+        else:
+            if user.password != field.data:
+                raise ValidationError('Incorrect password.')
+
+
 @user.route('/f/signin')
-def signin_form(error=False):
-    return render('user/signin_form', not error, error=error)
+def signin_form(form=None):
+    form = form or SignInForm()
+    return render('user/signin_form', form, form=form)
 
 
 @user.route('/f/signin', methods=['POST'])
 def signin():
-    login = request.form['login'].strip().lower()
-    password = request.form['password']
-    try:
-        user = g.session.query(User).filter_by(login=login)[0]
-    except IndexError:
-        pass
-    else:
-        if user.password == password:
-            set_current_user(user)
-            return redirect(url_for('profile', user_login=user.login))
-    return signin_form(error=True)
+    form = SignInForm()
+    if form.validate():
+        user = g.session.query(User).filter_by(login=form.login.data)[0]
+        set_current_user(user)
+        return redirect(url_for('profile', user_login=user.login))
+    return signin_form(form=form)
+
+
+class SignUpForm(Form):
+    login = TextField('Login name',
+                      validators=[Required(), Length(2, 45),
+                                  Regexp(User.LOGIN_PATTERN)])
+    password = PasswordField(
+        'Password',
+        validators=[Required(), EqualTo('confirm',
+                                        message='Passwords must match.')]
+    )
+    confirm = PasswordField('Repeat Password', validators=[Required()])
+    name = TextField('Screen name', validators=[Required(), Length(1, 45)])
+    email = html5.EmailField('Email', validators=[Optional(), Email()])
+    url = html5.URLField('Website', validators=[Optional(), URL()])
+
+    @classmethod
+    def get_instance(cls, *args, **kwargs):
+        if ('RECAPTCHA_PUBLIC_KEY' in current_app.config and
+            'RECAPTCHA_PRIVATE_KEY' in current_app.config):
+            class SignUpForm_recaptcha(cls):
+                recaptcha = RecaptchaField()
+                submit = SubmitField('Sign up')
+            return SignUpForm_recaptcha(*args, **kwargs)
+        class SignUpForm_plain(cls):
+            submit = SubmitField('Sign up')
+        return SignUpForm_plain(*args, **kwargs)
+
+    def validate_login(form, field):
+        if g.session.query(User).filter_by(login=field.data).count():
+            raise ValidationError('{0} is already taken.'.format(field.data))
 
 
 @user.route('/f/signup')
-def signup_form(recaptcha_error=None):
+def signup_form(form=None):
+    form = form or SignUpForm.get_instance()
+    response = render('user/signup_form', form, form=form)
     # ReCAPTCHA doesn't work on application/xhtml+xml.
-    response = render('user/signup_form', None,
-                      recaptcha_error=recaptcha_error)
     if ('RECAPTCHA_PUBLIC_KEY' in current_app.config and
         'RECAPTCHA_PRIVATE_KEY' in current_app.config and
         re.match(r'^application/xhtml\+xml(;|$)', response.content_type)):
@@ -111,28 +160,18 @@ def signup_form(recaptcha_error=None):
 
 @user.route('/', methods=['POST'])
 def signup():
-    if ('RECAPTCHA_PUBLIC_KEY' in current_app.config and
-        'RECAPTCHA_PRIVATE_KEY' in current_app.config):
-        r_params = {'privatekey': current_app.config['RECAPTCHA_PRIVATE_KEY'],
-                    'remoteip': request.remote_addr,
-                    'challenge': request.form['recaptcha_challenge_field'],
-                    'response': request.form['recaptcha_response_field']}
-        r = urllib2.urlopen('http://www.google.com/recaptcha/api/verify',
-                            data=werkzeug.urls.url_encode(r_params))
-        result = r.readlines()
-        if result[0].strip() == 'false':
-            response = signup_form(recaptcha_error=result[1].strip())
-            response.status_code = 400
-            return response
-    user = User(login=request.form['login'].strip(),
-                password=request.form['password'],
-                name=request.form['name'].strip(),
-                email=request.form['email'].strip(),
-                url=request.form['url'].strip())
-    with g.session.begin():
-        g.session.add(user)
-    set_current_user(user)
-    return redirect(url_for('profile', user_login=user.login), 302)
+    form = SignUpForm.get_instance()
+    if form.validate():
+        user = User(login=request.form['login'].strip(),
+                    password=request.form['password'],
+                    name=request.form['name'].strip(),
+                    email=request.form['email'].strip(),
+                    url=request.form['url'].strip())
+        with g.session.begin():
+            g.session.add(user)
+        set_current_user(user)
+        return redirect(url_for('profile', user_login=user.login), 302)
+    return signup_form(form=form)
 
 
 @user.route('/<user_login>')

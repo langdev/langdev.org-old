@@ -1,6 +1,7 @@
 syntax:glob
 docs/_build
 LangDev.egg-info
+db.sqlite
 *.pyc
 *.swp
 *.cfg
