@@ -10,15 +10,6 @@ LangDev
    :maxdepth: 2
 
    langdev
-   langdev/orm
-   langdev/user
-   langdev/objsimplify
-   langdev/web
-   langdev/web/home
-   langdev/web/user
-   langdev/web/serializers
-   langdev/web/wsgi
-   langdev/util
 
 
 Indices and tables

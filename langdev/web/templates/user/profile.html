@@ -1,6 +1,9 @@
 {% extends 'user/base.html' %}
+{% block title -%}
+  {{ user }} &#8212; {{ super() }}
+{%- endblock %}
 {% block body %}
-  <h1>{{ user.name }} (<code>{{ user.login }}</code>)</h1>
+  <h1>{{ user }} (<code>{{ user.login }}</code>)</h1>
   <dl>
     {% if user.url %}
       <dt>Website</dt>

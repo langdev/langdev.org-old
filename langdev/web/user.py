@@ -8,8 +8,6 @@
 
 """
 import re
-import urllib2
-import werkzeug.urls
 from flask import *
 from flaskext.wtf import *
 from langdev.user import User
@@ -67,6 +65,23 @@ def set_current_user(user):
         raise TypeError('expected a langdev.user.User instance, not ' +
                         repr(user))
     session['user_id'] = user.id
+
+
+def ensure_signin(user=None):
+    """Raises a 403 :exc:`~werkzeug.exceptions.Forbidden` error if not signed
+    in or :attr:`g.current_user <flask.g.current_user>` is not ``user``
+    (only if a parameter has passed).
+
+    :param user: an optional user. if present, it checks signed user's
+                 identity also
+    :type user: :class:`~langdev.user.User`
+    :returns: a signed user
+    :rtype: :class:`~langdev.user.User`
+
+    """
+    if not g.current_user or user and g.current_user.id != user.id:
+        abort(403)
+    return g.current_user
 
 
 @user.route('/f/signout')

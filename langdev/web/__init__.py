@@ -12,6 +12,12 @@ and Jinja2_ also.
    Module :mod:`langdev.web.user`
       User authentications, personal pages, and so on.
 
+   Module :mod:`langdev.web.forum`
+      Forum post pages and comments.
+
+   Module :mod:`langdev.web.pager`
+      Pager for long length web application.
+
    Module :mod:`langdev.web.serializers`
       Serializers for various content types.
 
@@ -36,6 +42,7 @@ and Jinja2_ also.
 """
 import os.path
 import flask
+import flask.globals
 import werkzeug
 import jinja2
 import sqlalchemy
@@ -65,7 +72,8 @@ import langdev.orm
 #: .. _Werkzeug: http://werkzeug.pocoo.org/
 #: .. _Flask: http://flask.pocoo.org/
 modules = {'langdev.web.home:home': {},
-           'langdev.web.user:user': {'url_prefix': '/users'}}
+           'langdev.web.user:user': {'url_prefix': '/users'},
+           'langdev.web.forum:forum': {'url_prefix': '/posts'}}
 
 #: The list of WSGI middlewares to hook in. Its elements are import names in
 #: string. ::
@@ -176,6 +184,7 @@ def create_app(modifier=None, config_filename=None):
         app.register_module(modobj, **(kwargs or {}))
     app.before_request_funcs.setdefault(None, []).extend(before_request_funcs)
     app.after_request_funcs.setdefault(None, []).extend(after_request_funcs)
+    app.jinja_env.globals['method_for'] = method_for
     middlewares = list(wsgi_middlewares)
     middlewares.extend(app.config.get('WSGI_MIDDLEWARES', []))
     for import_name in middlewares:
@@ -199,6 +208,35 @@ def after_request(function):
     """
     after_request_funcs.append(function)
     return function
+
+
+def method_for(endpoint):
+    """Gets the available method for ``endpoint``. It is useful for generating
+    ``<form>`` tags.
+
+    .. sourcecode:: jinja
+
+       <form action="{{ url_for('endpoint') }}"
+             method="{{ method_for('endpoint') }}">
+
+    :param endpoint: an endpoint name to find the available method
+    :type endpoint: :class:`basestring`
+    :returns: an available method
+    :rtype: :class:`basestring`
+
+    """
+    ctx = flask.globals._request_ctx_stack.top
+    if '.' not in endpoint:
+        mod = ctx.request.module
+        if mod is not None:
+            endpoint = mod + '.' + endpoint
+    elif endpoint.startswith('.'):
+        endpoint = endpoint[1:]
+    methods = ctx.app.url_map._rules_by_endpoint[endpoint][0].methods
+    try:
+        return iter(methods.difference(['HEAD', 'OPTIONS'])).next()
+    except StopIteration:
+        pass
 
 
 def render(template_name, value, **context):

@@ -1,0 +1,39 @@
+{% extends 'forum/base.html' %}
+{% block body %}
+  <a href="{{ url_for('write_form') }}">Write a post</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Author</th>
+        <th>Title</th>
+        <th>Created Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for post in posts %}
+        <tr>
+          <td><a href="{{ url_for('user.profile',
+                                  user_login=post.author.login) }}">
+                {{- post.author }}</a></td>
+          <th><a href="{{ url_for('post', post_id=post.id) }}">
+                {{- post }}</a></th>
+          <td><time datetime="{{ post.created_at.isoformat() }}">
+                {{ post.created_at.date() }}</time></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <ul class="pager">
+    {% for flag, page in pager %}
+      <li class="{{ flag is number and ' ' or flag }}">
+        {% if flag == 'selected' %}
+          <strong>{{ page }}</strong>
+        {% else %}
+          <a href="{{ url_for('posts', offset=(page - 1) * limit,
+                                       limit=limit) }}">{{ page }}</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -1,10 +1,14 @@
-{% macro render_form(form, action, method) %}
+{% macro render_form(form, endpoint) %}
+  {% set method = method_for(endpoint)|lower %}
+  {% set special_method = method not in ('get', 'post') %}
+  {% if special_method %}
+    {% set action = url_for(endpoint, __method__=method, **kwargs) %}
+  {% else %}
+    {% set action = url_for(endpoint, **kwargs) %}
+  {% endif %}
   <form action="{{ action }}"
-        method="{{ method.lower() == 'get' and 'get' or 'post' }}">
+        method="{{ special_method and 'post' or method }}">
     <fieldset>
-      {% if method.lower() not in ('get', 'post') %}
-        <input type="hidden" name="__method__" value="{{ method }}" />
-      {% endif %}
       {% for field in form %}
         {{ render_field(field, form.errors[field.name]) }}
       {% endfor %}

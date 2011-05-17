@@ -1,0 +1,35 @@
+{% extends 'forum/base.html' %}
+{% block body %}
+  <article class="post">
+    <h2>{{ post }}</h2>
+    <a href="{{ url_for('user.profile', user_login=post.author.login) }}">
+      {{- post.author }}</a>
+    <time datetime="{{ post.created_at.isoformat() }}">
+      {{- post.created_at }}</time>
+    {% if post.author == current_user %}
+      <a href="{{ url_for('edit_form', post_id=post.id) }}">Edit</a>
+    {% endif %}
+    <div class="body">
+      {{ post.body }}
+    </div>
+    {{ comments(post) }}
+  </article>
+{% endblock %}
+{% macro comments(parent) %}
+  {% set replies = parent.replies|list %}
+  {% if replies %}
+    <div class="comments">
+      {% for comment in replies %}
+        <article>
+          <div class="body">{{ comment }}</div>
+          <a href="{{ url_for('user.profile',
+                      user_login=comment.author.login) }}">
+            {{- comment.author }}</a>
+          <time datetime="{{ comment.created_at.isoformat() }}">
+            {{- comment.created_at }}</time>
+          {{ comments(comment) }}
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}

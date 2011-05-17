@@ -47,20 +47,21 @@ class User(langdev.orm.Base):
     login = Column(Unicode(45), nullable=False, unique=True)
 
     #: Hashed password.
-    password_hash = Column(String(32), nullable=False)
+    password_hash = orm.deferred(Column(String(32), nullable=False))
 
     #: Screen name.
-    name = Column(Unicode(45), nullable=False)
+    name = Column(Unicode(45), nullable=False, index=True)
 
     #: Email address.
-    email = Column(Unicode(255))
+    email = orm.deferred(Column(Unicode(255), index=True), group='profile')
 
     #: His/her website.
-    url = Column(UnicodeText)
+    url = orm.deferred(Column(UnicodeText, index=True), group='profile')
 
-    #: Registered time in :class:`datetime.datetime`.
-    created_at = Column(DateTime(timezone=True), nullable=False,
-                                                 default=functions.now())
+    #: (:class:`datetime.datetime`) Registered time.
+    created_at = orm.deferred(Column(DateTime(timezone=True), nullable=False,
+                                     default=functions.now()),
+                              group='profile')
 
     @orm.validates(login)
     def validate_login(self, key, login):
@@ -104,6 +105,9 @@ class User(langdev.orm.Base):
         else:
             raise TypeError('password have to be a string, not ' +
                             repr(password))
+
+    def __unicode__(self):
+        return self.name
             
 
 class Password(object):
