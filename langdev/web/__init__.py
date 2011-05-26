@@ -22,7 +22,7 @@ and Jinja2_ also.
       Serializers for various content types.
 
    Module :mod:`langdev.web.wsgi`
-      Custom WSGI middlewares for Defernia web application.
+      Custom WSGI middlewares for LangDev web application.
 
 
 .. _Flask: http://flask.pocoo.org/
@@ -91,7 +91,7 @@ modules = {'langdev.web.home:home': {},
 #:       Werkzeug_.
 #:
 #:    Module :mod:`langdev.web.wsgi`
-#:       Custom WSGI middlewares for Defernia web application.
+#:       Custom WSGI middlewares for LangDev web application.
 #:
 #:    Flask --- `Hooking in WSGI Middlewares`__
 #:       Flask_ provides a way to hook in WSGI middlewares.
@@ -108,6 +108,9 @@ before_request_funcs = []
 #: It is for lazy loading of global :attr:`~flask.Flask.after_request_funcs`
 #: list.
 after_request_funcs = []
+
+#: Internal storage dictionary for :func:`template_filter()` decorator.
+template_filters = {}
 
 #: The :class:`dict` of serializers for content types.
 #: Keys are MIME types like :mimetype:`application/json`, and values are
@@ -185,6 +188,7 @@ def create_app(modifier=None, config_filename=None):
     app.before_request_funcs.setdefault(None, []).extend(before_request_funcs)
     app.after_request_funcs.setdefault(None, []).extend(after_request_funcs)
     app.jinja_env.globals['method_for'] = method_for
+    app.jinja_env.filters.update(template_filters)
     middlewares = list(wsgi_middlewares)
     middlewares.extend(app.config.get('WSGI_MIDDLEWARES', []))
     for import_name in middlewares:
@@ -208,6 +212,33 @@ def after_request(function):
     """
     after_request_funcs.append(function)
     return function
+
+
+def template_filter(name=None):
+    """A decorator that is used to register custom template filter. You can
+    specify a name for the filter, otherwise the function name will be used.
+    Example::
+
+        @template_filter
+        def reverse(s):
+            return s[::-1]
+
+        @template_filter('order_by')
+        def query_order_by(query, column):
+            return query.order_by(column)
+
+    :param name: the optional name of the filter, otherwise the function name
+                 will be used
+    :type name: :class:`basestring`
+
+    """
+    def decorate(f):
+        template_filters[name or f.__name__] = f
+        return f
+    if callable(name):
+        name = None
+        return decorate(f)
+    return decorate
 
 
 def method_for(endpoint):
@@ -316,4 +347,32 @@ def define_session():
     """
     flask.g.database_engine = get_database_engine(flask.current_app.config)
     flask.g.session = langdev.orm.Session(bind=flask.g.database_engine)
+
+
+@template_filter('order_by')
+def query_order_by(query, column):
+    """Orders a ``query`` by ``column``.
+
+    .. sourcecode:: jinja
+
+       {% for post in user.posts|order_by('-created_at') %}
+         - {{ post }}
+       {% endfor %}
+
+    :param column: a column name. if ``-`` character has prepended, it
+                   becomes descending
+    :type column: :class:`basestring`
+    :returns: an ordered query
+    :rtype: :class:`sqlalchemy.orm.query.Query`
+
+    """
+    cls = query._entities[0].type
+    desc = False
+    if column.startswith('-'):
+        column = column[1:]
+        desc = True
+    column = getattr(cls, column)
+    if desc:
+        column = column.desc()
+    return query.order_by(column)
 

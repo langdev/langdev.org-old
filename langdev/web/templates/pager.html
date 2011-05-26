@@ -1,0 +1,15 @@
+{% macro render_pager(pager, limit, endpoint) %}
+  <ul class="pager">
+    {% for flag, page in pager %}
+      <li class="{{ flag is number and ' ' or flag }}">
+        {% if flag == 'selected' %}
+          <strong>{{ page }}</strong>
+        {% else %}
+          <a href="{{ url_for(endpoint, offset=(page - 1) * limit,
+                                        limit=limit,
+                                        **kwargs) }}">{{ page }}</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endmacro %}

@@ -6,11 +6,12 @@ import types
 import collections
 import langdev.util.visitor
 import langdev.user
+import langdev.forum
 
 
 def simplify(value, identifier_map, type_map={}, url_map=None, user=None,
              **extra):
-    """Simplifies a given ``value``.
+    """Simplifies a given :data:`value`.
     
     :param value: an object to simplify
     :param identifier_map: a map function that normalizes multi-word
@@ -25,6 +26,10 @@ def simplify(value, identifier_map, type_map={}, url_map=None, user=None,
     :type url_map: callable object
     :param user: an user object for signing
     :type user: :class:`langdev.user.User`
+    :param under_list: whether :data:`value` is contained by a list.
+                       :data:`False` by default
+    :param under_list: :clasS:`bool`
+    :returns: a simplified object
 
     """
     options = dict(extra)
@@ -121,18 +126,54 @@ transform = langdev.util.visitor.Visitor('transform')
 @transform.visit(collections.Iterable)
 @transform.visit(list)
 def transform(value, **options):
+    options = dict(options)
+    options['under_list'] = True
     return [simplify(v, **options) for v in value]
 
 
 @transform.visit(langdev.user.User)
 def transform(value, **options):
     idmap = options['identifier_map']
-    d = {idmap('id'): simplify(value.id, **options),
+    d = {idmap('ID'): simplify(value.id, **options),
          idmap('login'): simplify(value.login, **options),
          idmap('name'): simplify(value.name, **options),
          idmap('url'): simplify(value.url, **options),
-         idmap('created at'): simplify(value.created_at, **options)}
+         idmap('created at'): simplify(value.created_at, **options),
+         idmap('posts count'): simplify(value.posts.count(), **options),
+         idmap('comments count'): simplify(value.comments.count(),
+                                           **options)}
     if options['user'] == value:
         d[idmap('email')] = simplify(value.email, **options)
+    return d
+
+
+@transform.visit(langdev.forum.Post)
+def transform(value, **options):
+    idmap = options['identifier_map']
+    d = {idmap('ID'): simplify(value.id, **options),
+         idmap('author'): simplify(value.author, **options),
+         idmap('title'): simplify(value.title, **options),
+         idmap('sticky'): simplify(value.sticky, **options),
+         idmap('created at'): simplify(value.created_at, **options),
+         idmap('modified at'): simplify(value.modified_at, **options),
+         idmap('comments count'): simplify(value.comments.count(), **options),
+         idmap('replies count'): simplify(value.replies.count(), **options)}
+    if not options.get('under_list'):
+        d[idmap('body')] = simplify(value.body, **options)
+        d[idmap('replies')] = simplify(value.replies, **options)
+    return d
+
+
+@transform.visit(langdev.forum.Comment)
+def transform(value, **options):
+    idmap = options['identifier_map']
+    d = {idmap('ID'): simplify(value.id, **options),
+         idmap('author'): simplify(value.author, **options),
+         idmap('body'): simplify(value.body, **options),
+         idmap('created at'): simplify(value.created_at, **options),
+         idmap('replies count'): simplify(value.replies.count(), **options)}
+    if not options.get('under_list'):
+        d[idmap('post')] = simplify(value.post, **options)
+        d[idmap('replies')] = simplify(value.replies, **options)
     return d
 

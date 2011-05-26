@@ -35,8 +35,7 @@ def plist(value):
     :rtype: :class:`basestring`
 
     """
-    type_map = {datetime.datetime: datetime.datetime.isoformat,
-                datetime.date: datetime.date.isoformat,
+    type_map = {datetime.date: datetime.date.isoformat,
                 types.NoneType: bool}
     data = simplify(value, identifier_map=PascalCase,
                            type_map=type_map,

@@ -1,0 +1,25 @@
+{% extends '/user/base.html' %}
+{% from 'pager.html' import render_pager %}
+{% block title -%}
+  Posts &#8212; {{ super() }}
+{%- endblock %}
+{% block profile %}
+  <h2>Posts</h2>
+  <table>
+    <thead>
+      <th>Title</th>
+      <th>Written time</th>
+    </thead>
+    <tbody>
+      {% for post in (user.posts|order_by('-created_at')).limit(30) %}
+        <tr>
+          <th><a href="{{ url_for('forum.post', post_id=post.id) }}">
+            {{- post }}</a></th>
+          <td><time datetime="{{ post.created_at.isoformat() }}">
+            {{- post.created_at }}</time></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {{ render_pager(pager, limit, 'posts') }}
+{% endblock %}

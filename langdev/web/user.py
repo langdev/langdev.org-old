@@ -94,6 +94,7 @@ def signout():
 
 
 class SignInForm(Form):
+
     login = TextField('Login name',
                       validators=[Required(), Length(2, 45),
                                   Regexp(User.LOGIN_PATTERN)])
@@ -131,6 +132,7 @@ def signin():
 
 
 class SignUpForm(Form):
+
     login = TextField('Login name',
                       validators=[Required(), Length(2, 45),
                                   Regexp(User.LOGIN_PATTERN)])
@@ -189,12 +191,25 @@ def signup():
     return signup_form(form=form)
 
 
+def get_user(login):
+    """Gets a user by its ``login`` name."""
+    try:
+        return g.session.query(User).filter_by(login=login)[0]
+    except IndexError:
+        abort(404)
+
+
 @user.route('/<user_login>')
 def profile(user_login):
     """User profile page."""
-    try:
-        user = g.session.query(User).filter_by(login=user_login)[0]
-    except IndexError:
-        abort(404)
+    user = get_user(user_login)
     return render('user/profile', user, user=user)
+
+
+@user.route('/<user_login>/posts')
+def posts(user_login):
+    """Posts a user wrote."""
+    user = get_user(user_login)
+    posts = user.posts
+    return render('/user/posts', posts, user=user, posts=posts)
 

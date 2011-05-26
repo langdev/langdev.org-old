@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+import re
 import math
 from flask import *
 from flaskext.wtf import *
@@ -37,17 +38,31 @@ def posts():
     return render('forum/posts', posts, posts=posts, pager=pager, limit=limit)
 
 
-@forum.route('/<int:post_id>')
-def post(post_id):
-    post = get_post(post_id)
-    return render('forum/post', post, post=post)
-
-
 class PostForm(Form):
+
     title = TextField('Title', validators=[Required()])
     body = TextAreaField('Body', validators=[Required()])
     sticky = BooleanField('Sticky')
     submit = SubmitField('Submit')
+
+
+class CommentForm(Form):
+
+    parent_id = SelectField('Reply to', coerce=int, validators=[Optional()])
+    body = TextAreaField('Comment', validators=[Required()])
+    submit = SubmitField('Submit')
+
+    def fill_comments(self, post):
+        self.parent_id.choices = [(c.id, c.body) for c in post.comments]
+
+
+@forum.route('/<int:post_id>')
+def post(post_id, comment_form=None):
+    post = get_post(post_id)
+    if not comment_form:
+        comment_form = CommentForm()
+        comment_form.fill_comments(post)
+    return render('forum/post', post, post=post, comment_form=comment_form)
 
 
 @forum.route('/write')
@@ -87,5 +102,65 @@ def edit(post_id):
         with g.session.begin():
             form.populate_obj(post_object)
         return post(post_object.id)
-    return render('forum/edit_form', form, form=form)
+    return edit_form(post_id, form)
+
+
+@forum.route('/<int:post_id>', methods=['DELETE'])
+def delete(post_id):
+    post = get_post(post_id)
+    langdev.web.user.ensure_signin(post.author)
+    with g.session.begin():
+        g.session.delete(post)
+    return redirect(url_for('posts'), 302)
+
+
+def get_comment(comment_id, post_id=None):
+    comments = g.session.query(Comment).filter_by(id=comment_id)
+    if post_id:
+        comments = comments.filter_by(post_id=post_id)
+    try:
+        return comments[0]
+    except IndexError:
+        abort(404)
+
+
+@forum.route('/<int:post_id>', methods=['POST'])
+@forum.route('/<int:post_id>/<int:comment_id>', methods=['POST'])
+def write_comment(post_id, comment_id=None):
+    if comment_id:
+        parent = get_comment(comment_id, post_id)
+        post_object = comment_object.post
+    else:
+        post_object = get_post(post_id)
+        parent = None
+    langdev.web.user.ensure_signin()
+    form = CommentForm()
+    form.fill_comments(post_object)
+    if form.validate():
+        with g.session.begin():
+            cmt = Comment(author=g.current_user, parent=parent)
+            form.populate_obj(cmt)
+            post_object.comments.append(cmt)
+        return comment(post_object.id, cmt.id)
+    return post(post_id, form)
+
+
+@forum.route('/<int:post_id>/<int:comment_id>')
+def comment(post_id, comment_id):
+    comment = get_comment(comment_id, post_id)
+    response = render('forum/base', comment, comment=comment)
+    if re.match(r'^(application/xhtml\+xml|text/html)\s*($|;)',
+                response.content_type):
+        return redirect(url_for('post', post_id=post_id) +
+                        '#comment-{0}'.format(comment.id))
+    return response
+
+
+@forum.route('/<int:post_id>/<int:comment_id>', methods=['DELETE'])
+def delete_comment(post_id, comment_id):
+    comment = get_comment(comment_id, post_id)
+    langdev.web.user.ensure_signin(comment.author)
+    with g.session.begin():
+        g.session.delete(comment)
+    return redirect(url_for('post', post_id=post_id), 302)
 

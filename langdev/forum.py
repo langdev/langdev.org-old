@@ -22,8 +22,9 @@ class Post(langdev.orm.Base):
                        nullable=False, index=True)
 
     #: (:class:`~langdev.user.User`) A post author.
-    author = orm.relationship(langdev.user.User, innerjoin=True,
-                              lazy='dyanmic', backref='posts')
+    author = orm.relationship(langdev.user.User,
+                              innerjoin=True, lazy='dyanmic',
+                              backref=orm.backref('posts', lazy='dynamic'))
 
     #: A post title.
     title = Column(Unicode(255), nullable=False, index=True)
@@ -45,7 +46,8 @@ class Post(langdev.orm.Base):
     @property
     def replies(self):
         """Comments that don't have :attr:`~Comment.parent` comments."""
-        return self.comments.filter_by(parent=None)
+        pid = Comment.parent_id
+        return self.comments.filter((pid == None) | (pid == ''))
 
     def __unicode__(self):
         return self.title
@@ -63,11 +65,11 @@ class Comment(langdev.orm.Base):
     post_id = Column(Integer, ForeignKey(Post.id), nullable=False, index=True)
 
     #: (:class:`Post`) A post this comment belongs to.
-    post = orm.relationship(Post, innerjoin=True, lazy='dynamic',
-                                  backref='comments')
+    post = orm.relationship(Post, innerjoin=True,
+                            backref=orm.backref('comments', lazy='dynamic'))
 
     #: An :attr:`id` of :attr:`parent`.
-    parent_id = Column(Integer, ForeignKey(id), index=True)
+    parent_id = Column(Integer, ForeignKey(id), default=None, index=True)
 
     #: Replies on this comment.
     replies = orm.relationship('Comment', innerjoin=True, lazy='dynamic',
@@ -79,7 +81,7 @@ class Comment(langdev.orm.Base):
 
     #: (:class:`~langdev.user.User`) A comment author.
     author = orm.relationship(langdev.user.User,
-                              lazy='dyanmic', backref='comments')
+                              backref=orm.backref('comments', lazy='dynamic'))
 
     #: A comment content.
     body = Column(UnicodeText, nullable=False, index=True)

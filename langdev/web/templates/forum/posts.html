@@ -1,17 +1,24 @@
-{% extends 'forum/base.html' %}
+{% extends '/forum/base.html' %}
+{% from 'pager.html' import render_pager %}
 {% block body %}
-  <a href="{{ url_for('write_form') }}">Write a post</a>
+  {% if current_user %}
+    <a href="{{ url_for('write_form') }}">Write a post</a>
+  {% endif %}
   <table>
     <thead>
       <tr>
         <th>Author</th>
         <th>Title</th>
-        <th>Created Time</th>
+        <th>Written Time</th>
       </tr>
     </thead>
     <tbody>
       {% for post in posts %}
-        <tr>
+        {% if post.sticky %}
+          <tr class="sticky">
+        {% else %}
+          <tr>
+        {% endif %}
           <td><a href="{{ url_for('user.profile',
                                   user_login=post.author.login) }}">
                 {{- post.author }}</a></td>
@@ -23,17 +30,5 @@
       {% endfor %}
     </tbody>
   </table>
-
-  <ul class="pager">
-    {% for flag, page in pager %}
-      <li class="{{ flag is number and ' ' or flag }}">
-        {% if flag == 'selected' %}
-          <strong>{{ page }}</strong>
-        {% else %}
-          <a href="{{ url_for('posts', offset=(page - 1) * limit,
-                                       limit=limit) }}">{{ page }}</a>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
+  {{ render_pager(pager, limit, 'posts') }}
 {% endblock %}

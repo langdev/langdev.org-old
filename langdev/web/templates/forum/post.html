@@ -1,4 +1,8 @@
-{% extends 'forum/base.html' %}
+{% extends '/forum/base.html' %}
+{% from 'form.html' import render_form, render_raw_form %}
+{% block title -%}
+  {{ post }} &#8212; {{ super() }}
+{%- endblock %}
 {% block body %}
   <article class="post">
     <h2>{{ post }}</h2>
@@ -8,25 +12,38 @@
       {{- post.created_at }}</time>
     {% if post.author == current_user %}
       <a href="{{ url_for('edit_form', post_id=post.id) }}">Edit</a>
+      {% call render_raw_form('delete', post_id=post.id) %}
+        <button type="submit">Delete</button>
+      {% endcall %}
     {% endif %}
     <div class="body">
       {{ post.body }}
     </div>
     {{ comments(post) }}
+    {% if current_user %}
+      {{ render_form(comment_form, 'write_comment', post_id=post.id) }}
+    {% endif %}
   </article>
 {% endblock %}
 {% macro comments(parent) %}
   {% set replies = parent.replies|list %}
   {% if replies %}
-    <div class="comments">
+    <div class="replies comments" style="margin-left: 1em; padding-left: 1em;
+                                         border-left: 1px solid silver;">
       {% for comment in replies %}
-        <article>
+        <article id="comment-{{ comment.id }}">
           <div class="body">{{ comment }}</div>
           <a href="{{ url_for('user.profile',
                       user_login=comment.author.login) }}">
             {{- comment.author }}</a>
           <time datetime="{{ comment.created_at.isoformat() }}">
             {{- comment.created_at }}</time>
+          {% if comment.author == current_user %}
+            {% call render_raw_form('delete_comment', post_id=comment.post_id,
+                                                      comment_id=comment.id) %}
+              <button type="submit">Delete</button>
+            {% endcall %}
+          {% endif %}
           {{ comments(comment) }}
         </article>
       {% endfor %}

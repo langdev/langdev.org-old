@@ -46,7 +46,7 @@ def create_config_file(config_filename):
 
 @manager.command
 def initdb():
-    """Creates all tables needed by Defernia."""
+    """Creates all tables needed by LangDev."""
     engine = langdev.web.get_database_engine(flask.current_app.config)
     langdev.orm.Base.metadata.create_all(engine)
 

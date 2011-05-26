@@ -1,4 +1,4 @@
-{% macro render_form(form, endpoint) %}
+{% macro render_raw_form(endpoint) %}
   {% set method = method_for(endpoint)|lower %}
   {% set special_method = method not in ('get', 'post') %}
   {% if special_method %}
@@ -8,12 +8,18 @@
   {% endif %}
   <form action="{{ action }}"
         method="{{ special_method and 'post' or method }}">
+    {{ caller() }}
+  </form>
+{% endmacro %}
+
+{% macro render_form(form, endpoint) %}
+  {% call render_raw_form(endpoint, **kwargs) %}
     <fieldset>
       {% for field in form %}
         {{ render_field(field, form.errors[field.name]) }}
       {% endfor %}
     </fieldset>
-  </form>
+  {% endcall %}
 {% endmacro %}
 
 {% macro render_field(field, errors=[]) %}
