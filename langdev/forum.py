@@ -45,8 +45,14 @@ class Post(langdev.orm.Base):
     @property
     def replies(self):
         """Comments that don't have :attr:`~Comment.parent` comments."""
+        from sqlalchemy.dialects.sqlite.base import SQLiteDialect
+        session = langdev.orm.Session.object_session(self)
+        engine = session.get_bind(type(self))
         pid = Comment.parent_id
-        return self.comments.filter((pid == None) | (pid == ''))
+        cond = pid == None
+        if isinstance(engine.dialect, SQLiteDialect):
+            cond = cond | (pid == '')
+        return self.comments.filter(cond)
 
     def __unicode__(self):
         return self.title
