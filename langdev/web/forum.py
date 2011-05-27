@@ -38,6 +38,16 @@ def posts():
     return render('forum/posts', posts, posts=posts, pager=pager, limit=limit)
 
 
+@forum.route('/atom.xml')
+def atom():
+    limit = int(request.args.get('limit', 20))
+    posts = g.session.query(Post).order_by(Post.created_at.desc()).limit(limit)
+    xml = render_template('forum/atom.xml', posts=posts)
+    response = make_response(xml)
+    response.content_type = 'application/atom+xml'
+    return response
+
+
 class PostForm(Form):
 
     title = TextField('Title', validators=[Required()])
