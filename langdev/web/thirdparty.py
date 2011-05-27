@@ -5,6 +5,7 @@
 import re
 from flask import *
 from flaskext.wtf import *
+import werkzeug.exceptions
 import sqlalchemy.orm.exc
 from langdev.user import User
 from langdev.thirdparty import Application
@@ -76,15 +77,26 @@ def app(app_key):
 def sso(app_key, user_login):
     """Simple SSO API."""
     app = get_app(app_key)
+    error_ignored = request.values.get('error') == 'ignore'
+    success = None
     if User.LOGIN_PATTERN.match(user_login):
-        user = langdev.web.user.get_user(user_login)
+        try:
+            user = langdev.web.user.get_user(user_login)
+        except werkzeug.exceptions.NotFound:
+            if not error_ignored:
+                raise
+            success = False
     else:
         try:
             user = g.session.query(User).filter_by(email=user_login).one()
         except sqlalchemy.orm.exc.NoResultFound:
-            abort(404)
+            if error_ignored:
+                success = False
+            else:
+                abort(404)
         except sqlalchemy.orm.exc.MultipleResultsFound:
-            return render('thidparty/sso', False, success=False)
-    success = app.hmac(user.password) == request.values['password']
+            success = False
+    if success is None:
+        success = app.hmac(user.password) == request.values['password']
     return render('thirdparty/sso', success, success=success)
 
