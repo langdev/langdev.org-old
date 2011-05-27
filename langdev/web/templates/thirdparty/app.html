@@ -42,7 +42,7 @@
   <h3><code>POST
   {{ url_for('sso', app_key='yourappkey', user_login='userlogin')
    | replace('yourappkey', '<var>YourAppKey</var>')
-   | replace('userlogin', '<var>UserLoginName</var>')
+   | replace('userlogin', '<var>UserLoginOrEmail</var>')
    | safe}}</code></h3>
   <dl class="parameters">
     <dt><code>password</code></dt>

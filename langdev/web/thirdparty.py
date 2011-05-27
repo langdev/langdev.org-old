@@ -5,6 +5,7 @@
 import re
 from flask import *
 from flaskext.wtf import *
+import sqlalchemy.orm.exc
 from langdev.user import User
 from langdev.thirdparty import Application
 from langdev.web import render
@@ -43,7 +44,7 @@ def register():
         form.populate_obj(app)
         with g.session.begin():
             g.session.add(app)
-        return redirect(url_for('app', key=app.key), 302)
+        return redirect(url_for('app', app_key=app.key), 302)
     return register_form(form=form)
 
 
@@ -75,7 +76,15 @@ def app(app_key):
 def sso(app_key, user_login):
     """Simple SSO API."""
     app = get_app(app_key)
-    user = langdev.web.user.get_user(user_login)
+    if User.LOGIN_PATTERN.match(user_login):
+        user = langdev.web.user.get_user(user_login)
+    else:
+        try:
+            user = g.session.query(User).filter_by(email=user_login).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            abort(404)
+        except sqlalchemy.orm.exc.MultipleResultsFound:
+            return render('thidparty/sso', False, success=False)
     success = app.hmac(user.password) == request.values['password']
     return render('thirdparty/sso', success, success=success)
 
