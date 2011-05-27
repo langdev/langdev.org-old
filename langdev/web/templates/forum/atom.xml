@@ -25,7 +25,7 @@
           {%- endif -%}
         </uri>
       </author>
-      <content type="text">{{ post.body }}</content>
+      <content type="html">{{ post.body_html }}</content>
       <updated>{{ post.modified_at.isoformat() }}</updated>
       <published>{{ post.created_at.isoformat() }}</published>
     </entry>

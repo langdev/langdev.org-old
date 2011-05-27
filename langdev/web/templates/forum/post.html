@@ -16,9 +16,7 @@
         <button type="submit">Delete</button>
       {% endcall %}
     {% endif %}
-    <div class="body">
-      {{ post.body }}
-    </div>
+    <div class="body">{{ post.body_html|safe }}</div>
     {{ comments(post) }}
     {% if current_user %}
       {{ render_form(comment_form, 'write_comment', post_id=post.id) }}

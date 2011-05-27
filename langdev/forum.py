@@ -5,6 +5,7 @@
 from sqlalchemy import *
 from sqlalchemy import orm
 from sqlalchemy.sql import functions
+import markdown2
 import langdev.orm
 import langdev.user
 
@@ -41,6 +42,20 @@ class Post(langdev.orm.Base):
     #: (:class:`datetime.datetime`) Lastly modified time.
     modified_at = Column(DateTime(timezone=True), nullable=False,
                          default=functions.now(), onupdate=functions.now())
+
+    @property
+    def body_html(self):
+        """HTML-compiled (from Markdown_) :attr:`body` text.
+
+        .. _Markdown: http://daringfireball.net/projects/markdown/
+
+        """
+        global markdown
+        try:
+            markdown
+        except NameError:
+            markdown = markdown2.Markdown(extras=['footnotes'])
+        return markdown.convert(self.body)
 
     @property
     def replies(self):
@@ -95,6 +110,23 @@ class Comment(langdev.orm.Base):
     created_at = Column(DateTime(timezone=True),
                         nullable=False, default=functions.now(), index=True)
 
+    @property
+    def body_html(self):
+        """HTML-compiled (from Markdown_) :attr:`body` text.
+
+        .. _Markdown: http://daringfireball.net/projects/markdown/
+
+        """
+        global markdown
+        try:
+            markdown
+        except NameError:
+            markdown = markdown2.Markdown(extras=['footnotes'])
+        return markdown.convert(self.body)
+
     def __unicode__(self):
         return self.body
+
+    def __html__(self):
+        return self.body_html
 
