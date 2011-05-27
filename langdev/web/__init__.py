@@ -15,6 +15,9 @@ and Jinja2_ also.
    Module :mod:`langdev.web.forum`
       Forum post pages and comments.
 
+   Module :mod:`langdev.web.thirdparty`
+      Third-party applications.
+
    Module :mod:`langdev.web.pager`
       Pager for long length web application.
 
@@ -73,7 +76,8 @@ import langdev.orm
 #: .. _Flask: http://flask.pocoo.org/
 modules = {'langdev.web.home:home': {},
            'langdev.web.user:user': {'url_prefix': '/users'},
-           'langdev.web.forum:forum': {'url_prefix': '/posts'}}
+           'langdev.web.forum:forum': {'url_prefix': '/posts'},
+           'langdev.web.thirdparty:thirdparty': {'url_prefix': '/apps'}}
 
 #: The list of WSGI middlewares to hook in. Its elements are import names in
 #: string. ::
@@ -108,6 +112,10 @@ before_request_funcs = []
 #: It is for lazy loading of global :attr:`~flask.Flask.after_request_funcs`
 #: list.
 after_request_funcs = []
+
+# Similar to :attr:`flask.Flask.error_handlers` attribute.
+#: It is for lazy loading of global :attr:`~flask.Flask.error_handlers` list.
+error_handlers = {}
 
 #: Internal storage dictionary for :func:`template_filter()` decorator.
 template_filters = {}
@@ -187,6 +195,7 @@ def create_app(modifier=None, config_filename=None):
         app.register_module(modobj, **(kwargs or {}))
     app.before_request_funcs.setdefault(None, []).extend(before_request_funcs)
     app.after_request_funcs.setdefault(None, []).extend(after_request_funcs)
+    app.error_handlers.update(error_handlers)
     app.jinja_env.globals['method_for'] = method_for
     app.jinja_env.filters.update(template_filters)
     middlewares = list(wsgi_middlewares)
@@ -212,6 +221,27 @@ def after_request(function):
     """
     after_request_funcs.append(function)
     return function
+
+
+def errorhandler(code):
+    """The decorator that registers a function into :data:`error_handlers`.
+    ::
+
+        @errorhandler(404)
+        def not_found(error):
+            return 'This page does not exist', 404
+
+    :param code: an error status code to associate
+    :type code: :class:`int`
+
+    .. seealso:: Decorator Method :meth:`flask.Flask.errorhandler()`
+
+    """
+    def decorate(function):
+        global error_handlers
+        error_handlers[code] = function
+        return function
+    return decorate
 
 
 def template_filter(name=None):
@@ -286,6 +316,7 @@ def render(template_name, value, **context):
                         of the template
 
     .. seealso:: Constant :const:`content_types`
+    .. todo:: Adding :mailheader:`Vary` header.
 
     """
     accept_mimetypes = flask.request.accept_mimetypes

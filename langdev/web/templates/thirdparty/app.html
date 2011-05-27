@@ -1,0 +1,90 @@
+{% extends 'thirdparty/base.html' %}
+{% block body %}
+  <dl class="application">
+    <dt class="title">Title</dt>
+    <dd class="Title">{{ app }}</dd>
+    <dt class="url">Website</dt>
+    <dd class="url"><a href="{{ app.url }}">{{ app.url }}</a></dd>
+    <dt class="key">Key</dt>
+    <dd class="key"><code>{{ app.key }}</code></dd>
+    <dt class="secret-key">Secret Key</dt>
+    <dd class="secret-key"><code>{{ app.secret_key }}</code></dd>
+    <dt class="owner">Owner</dt>
+    <dd class="owner">
+      <a href="{{ url_for('user.profile', user_login=app.owner.login) }}">
+        {{- app.owner }}</a></dd>
+    <dt class="description">Description</dt>
+    <dd class="description">{{ app.description }}</dd>
+  </dl>
+
+  <h2>Hashing</h2>
+  <p>Use HMAC with SHA1. All strings have to be UTF-8-encoded before hashing.
+     See the following example table:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>String</th>
+        <th>Hash</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in ('hello', app.title, current_user.name) %}
+        <tr>
+          <td><code>{{ s }}</code></td>
+          <td><code>{{ app.hmac(s) }}</code></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2><abbr title="Single Sign-on">SSO</abbr></h2>
+
+  <h3><code>POST
+  {{ url_for('sso', app_key='yourappkey', user_login='userlogin')
+   | replace('yourappkey', '<var>YourAppKey</var>')
+   | replace('userlogin', '<var>UserLoginName</var>')
+   | safe}}</code></h3>
+  <dl class="parameters">
+    <dt><code>password</code></dt>
+    <dd>(Required.)
+        HMAC+SHA1 hased hexadecimal digest of (MD5 hashed hexadecimal digest
+        of input password).
+        <code>hmac-hexdigest(md5-hexdigest(input-password), app-secret-key,
+              sha1)</code>.</dd>
+    <dt><code>digestmod</code></dt>
+    <dd>(Optional.)
+        Hash algorithm. Currently supports <code>sha1</code> only.
+        Default is <code>sha1</code></dd>
+  </dl>
+
+  <h3>Request example</h3>
+  <p>Assume that user input password is: <code>hello</code>.</p>
+  <p>MD5-hashed hexadecimal digest of <code>hello</code> is:
+     <code>5d41402abc4b2a76b9719d911017c592</code>.</p>
+  <p>HMAC+SHA1 hashed (when secret key is <code>{{ app.secret_key }}</code>
+     hexadecimal digest of <code>5d41402abc4b2a76b9719d911017c592</code> is:
+     <code>{{ app.hmac('5d41402abc4b2a76b9719d911017c592') }}</code>.</p>
+  <pre>POST {{ url_for('sso', app_key=app.key,
+                              user_login=current_user.login) }} HTTP/1.1
+Host: {{ request.host }}
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+
+password=
+{{- app.hmac('http://localhost:3333/apps/a7a0672911576f11c439569affcc1c53') -}}
+  </pre>
+
+  <h3>Response example: when password is correct</h3>
+  <pre>HTTP/1.1 200 OK
+Vary: Accept
+Content-Type: application/json
+
+true</pre>
+
+  <h3>Response example: when password is incorrect</h3>
+  <pre>HTTP/1.1 200 OK
+Vary: Accept
+Content-Type: application/json
+
+false</pre>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'thirdparty/base.html' %}
+{% from 'form.html' import render_form %}
+{% block body %}
+  {% if success %}
+    <p>Oll Korrect.</p>
+  {% else %}
+    <p>No!</p>
+  {% endif %}
+{% endblock %}

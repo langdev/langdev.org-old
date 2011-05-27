@@ -22,8 +22,7 @@ class Post(langdev.orm.Base):
                        nullable=False, index=True)
 
     #: (:class:`~langdev.user.User`) A post author.
-    author = orm.relationship(langdev.user.User,
-                              innerjoin=True, lazy='dyanmic',
+    author = orm.relationship(langdev.user.User, innerjoin=True,
                               backref=orm.backref('posts', lazy='dynamic'))
 
     #: A post title.

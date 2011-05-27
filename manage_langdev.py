@@ -14,6 +14,9 @@ import langdev.web
 import langdev.user
 
 
+model_modules = ['langdev.user', 'langdev.forum', 'langdev.thirdparty']
+
+
 def create_app(config_filename):
     if not os.path.isfile(config_filename):
         msg = "{0} doesn't exist yet; would you create it"
@@ -47,6 +50,8 @@ def create_config_file(config_filename):
 @manager.command
 def initdb():
     """Creates all tables needed by LangDev."""
+    for module in model_modules:
+        __import__(module)
     engine = langdev.web.get_database_engine(flask.current_app.config)
     langdev.orm.Base.metadata.create_all(engine)
 

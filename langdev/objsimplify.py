@@ -7,6 +7,7 @@ import collections
 import langdev.util.visitor
 import langdev.user
 import langdev.forum
+import langdev.thirdparty
 
 
 def simplify(value, identifier_map, type_map={}, url_map=None, user=None,
@@ -175,5 +176,19 @@ def transform(value, **options):
     if not options.get('under_list'):
         d[idmap('post')] = simplify(value.post, **options)
         d[idmap('replies')] = simplify(value.replies, **options)
+    return d
+
+
+@transform.visit(langdev.thirdparty.Application)
+def transform(value, **options):
+    idmap = options['identifier_map']
+    d = {idmap('key'): simplify(value.key, **options),
+         idmap('owner'): simplify(value.owner, **options),
+         idmap('title'): simplify(value.title, **options),
+         idmap('description'): simplify(value.description, **options),
+         idmap('url'): simplify(value.url, **options),
+         idmap('created at'): simplify(value.created_at, **options)}
+    if options['user'] == value:
+        d[idmap('secret_key')] = simplify(value.secret_key, **options)
     return d
 

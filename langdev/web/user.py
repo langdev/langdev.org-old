@@ -10,8 +10,9 @@
 import re
 from flask import *
 from flaskext.wtf import *
+import werkzeug.datastructures
 from langdev.user import User
-from langdev.web import before_request, render
+from langdev.web import before_request, errorhandler, render
 
 
 #: User web pages module.
@@ -84,6 +85,14 @@ def ensure_signin(user=None):
     return g.current_user
 
 
+@errorhandler(403)
+def forbidden(error):
+    """403 forbidden page."""
+    if g.current_user:
+        return 'Forbidden', 403
+    return signin_form(return_url=request.url)
+
+
 @user.route('/f/signout')
 def signout():
     """Signs out."""
@@ -99,6 +108,7 @@ class SignInForm(Form):
                       validators=[Required(), Length(2, 45),
                                   Regexp(User.LOGIN_PATTERN)])
     password = PasswordField('Password', validators=[Required()])
+    return_url = HiddenField(validators=[Optional()])
     submit = SubmitField('Login')
 
     def validate_login(form, field):
@@ -116,8 +126,13 @@ class SignInForm(Form):
 
 
 @user.route('/f/signin')
-def signin_form(form=None):
-    form = form or SignInForm()
+def signin_form(form=None, return_url=None):
+    if not form:
+        formdata = werkzeug.datastructures.MultiDict()
+        return_url = return_url or request.values.get('return_url')
+        if return_url:
+            formdata['return_url'] = return_url
+        form = SignInForm(formdata)
     return render('user/signin_form', form, form=form)
 
 
@@ -127,7 +142,9 @@ def signin():
     if form.validate():
         user = g.session.query(User).filter_by(login=form.login.data)[0]
         set_current_user(user)
-        return redirect(url_for('profile', user_login=user.login))
+        return_url = form.return_url.data or \
+                     url_for('profile', user_login=user.login)
+        return redirect(return_url)
     return signin_form(form=form)
 
 

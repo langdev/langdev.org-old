@@ -1,6 +1,6 @@
 {% extends 'user/base.html' %}
 {% from 'form.html' import render_form %}
 {% block body %}
-  {{ render_form(form, 'signin') }}
-  <a href="{{ url_for('signup_form') }}">Sign up</a>
+  {{ render_form(form, 'user.signin') }}
+  <a href="{{ url_for('user.signup_form') }}">Sign up</a>
 {% endblock %}

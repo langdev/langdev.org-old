@@ -60,7 +60,7 @@ class User(langdev.orm.Base):
 
     #: (:class:`datetime.datetime`) Registered time.
     created_at = orm.deferred(Column(DateTime(timezone=True), nullable=False,
-                                     default=functions.now()),
+                                     default=functions.now(), index=True),
                               group='profile')
 
     @orm.validates(login)
