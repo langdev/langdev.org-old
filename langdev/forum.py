@@ -29,7 +29,7 @@ class Post(langdev.orm.Base):
     title = Column(Unicode(255), nullable=False, index=True)
 
     #: A post content.
-    body = orm.deferred(Column(UnicodeText, nullable=False, index=True))
+    body = orm.deferred(Column(UnicodeText, nullable=False))
 
     #: Whether it is sticky.
     sticky = Column(Boolean, nullable=False, default=False, index=True)
@@ -89,7 +89,7 @@ class Comment(langdev.orm.Base):
                               backref=orm.backref('comments', lazy='dynamic'))
 
     #: A comment content.
-    body = Column(UnicodeText, nullable=False, index=True)
+    body = Column(UnicodeText, nullable=False)
 
     #: (:class:`datetime.datetime`) Created time.
     created_at = Column(DateTime(timezone=True),
