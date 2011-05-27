@@ -11,6 +11,22 @@
     <script src="{{ static_url_for('jquery-1.6.1.min.js') }}"></script>
   </head>
   <body>
+    <header>
+      <h1>LangDev</h1>
+      <nav>
+        {% if current_user %}
+          <a href="{{ url_for('user.profile',
+                              user_login=current_user.login) }}">
+            {{- current_user -}}
+          </a>
+          <a href="{{ url_for('user.signout') }}">Sign out</a>
+        {% else %}
+          <a href="{{ url_for('user.signin_form',
+                              return_url=request.url) }}">Sign in</a>
+          <a href="{{ url_for('user.signup_form') }}">Sign up</a>
+        {% endif %}
+      </nav>
+    </header>
     {% block body %}
     {% endblock %}
   </body>

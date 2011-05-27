@@ -13,9 +13,5 @@ home = Module(__name__)
 
 @home.route('/')
 def main():
-    if g.current_user:
-        url = url_for('user.profile', user_login=g.current_user.login)
-    else:
-        url = url_for('user.signin_form')
-    return redirect(url)
+    return redirect(url_for('forum.posts'))
 
