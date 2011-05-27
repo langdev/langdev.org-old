@@ -84,16 +84,8 @@ class Comment(langdev.orm.Base):
     #: An :attr:`~Post.id` of :attr:`post`.
     post_id = Column(Integer, ForeignKey(Post.id), nullable=False, index=True)
 
-    #: (:class:`Post`) A post this comment belongs to.
-    post = orm.relationship(Post, innerjoin=True,
-                            backref=orm.backref('comments', lazy='dynamic'))
-
     #: An :attr:`id` of :attr:`parent`.
     parent_id = Column(Integer, ForeignKey(id), default=None, index=True)
-
-    #: Replies on this comment.
-    replies = orm.relationship('Comment', innerjoin=True, lazy='dynamic',
-                               backref=orm.backref('parent', remote_side=[id]))
 
     #: An :attr:`~langdev.user.User.id` of :attr:`author`.
     author_id = Column(Integer, ForeignKey(langdev.user.User.id),
@@ -109,6 +101,19 @@ class Comment(langdev.orm.Base):
     #: (:class:`datetime.datetime`) Created time.
     created_at = Column(DateTime(timezone=True),
                         nullable=False, default=functions.now(), index=True)
+
+    #: (:class:`Post`) A post this comment belongs to.
+    post = orm.relationship(Post, innerjoin=True,
+                            backref=orm.backref('comments',
+                                                order_by=created_at,
+                                                lazy='dynamic'))
+
+    #: Replies on this comment.
+    replies = orm.relationship('Comment',
+                               innerjoin=True,
+                               lazy='dynamic',
+                               order_by=created_at,
+                               backref=orm.backref('parent', remote_side=[id]))
 
     @property
     def body_html(self):
