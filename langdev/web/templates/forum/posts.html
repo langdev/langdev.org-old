@@ -1,5 +1,10 @@
 {% extends '/forum/base.html' %}
 {% from 'pager.html' import render_pager %}
+{% block head %}
+  <link rel="alternate"
+    href="{{ config.get('FORUM_FEED_HREF', url_for('atom', _external=True)) }}"
+    type="{{ config.get('FORUM_FEED_TYPE', 'application/atom+xml') }}" />
+{% endblock %}
 {% block body %}
   {% if current_user %}
     <a href="{{ url_for('write_form') }}">Write a post</a>
