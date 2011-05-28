@@ -3,6 +3,10 @@
 {% block title -%}
   {{ post }} &#8212; {{ super() }}
 {%- endblock %}
+{% block head %}
+  <link rel="canonical" href="{{ url_for('post', post_id=post.id,
+                                                 _external=True) }}" />
+{% endblock %}
 {% block body %}
   <article class="post">
     <h2>{{ post }}</h2>

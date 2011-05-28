@@ -9,6 +9,8 @@
     <meta charset="utf-8" />
     <title>{% block title -%} LangDev {%- endblock %}</title>
     <script src="{{ static_url_for('jquery-1.6.1.min.js') }}"></script>
+    {% block head %}
+    {% endblock %}
   </head>
   <body>
     <header>

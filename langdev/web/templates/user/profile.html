@@ -1,4 +1,8 @@
 {% extends '/user/base.html' %}
+{% block head %}
+  <link rel="canonical" href="{{ url_for('profile', user_login=user.login,
+                                                    _external=True) }}" />
+{% endblock %}
 {% block profile %}
   <dl>
     {% if user.url %}
