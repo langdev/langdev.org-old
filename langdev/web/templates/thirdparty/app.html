@@ -61,7 +61,7 @@
   <p>Assume that user input password is: <code>hello</code>.</p>
   <p>MD5-hashed hexadecimal digest of <code>hello</code> is:
      <code>5d41402abc4b2a76b9719d911017c592</code>.</p>
-  <p>HMAC+SHA1 hashed (when secret key is <code>{{ app.secret_key }}</code>
+  <p>HMAC+SHA1 hashed (when secret key is <code>{{ app.secret_key }}</code>)
      hexadecimal digest of <code>5d41402abc4b2a76b9719d911017c592</code> is:
      <code>{{ app.hmac('5d41402abc4b2a76b9719d911017c592') }}</code>.</p>
   <pre>POST {{ url_for('sso', app_key=app.key,
@@ -70,8 +70,7 @@ Host: {{ request.host }}
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 
-password=
-{{- app.hmac('http://localhost:3333/apps/a7a0672911576f11c439569affcc1c53') -}}
+password={{- app.hmac('5d41402abc4b2a76b9719d911017c592') -}}
   </pre>
 
   <h3>Response example: when password is correct</h3>
