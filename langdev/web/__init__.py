@@ -341,10 +341,14 @@ def render(template_name, value, **context):
         if serializer.startswith('.'):
             template_name += serializer
             result = flask.render_template(template_name, **context)
-            return flask.Response(result, mimetype=content_type)
-        serializer = werkzeug.utils.import_string(serializer)
-    result = serializer(value)
-    return flask.Response(result, mimetype=content_type)
+            response = flask.Response(result, mimetype=content_type)
+        else:
+            serializer = werkzeug.utils.import_string(serializer)
+    if callable(serializer):
+        result = serializer(value)
+        response = flask.Response(result, mimetype=content_type)
+    response.headers['Vary'] = 'Accept'
+    return response
 
 
 def get_database_engine(config):
