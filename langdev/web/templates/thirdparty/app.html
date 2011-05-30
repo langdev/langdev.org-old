@@ -86,4 +86,19 @@ Vary: Accept
 Content-Type: application/json
 
 false</pre>
+
+  <h3>Response example: when user doesn't exist</h3>
+  <pre>HTTP/1.1 404 Not Found
+Content-Type: text/html
+{{ '''
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"&gt;
+<title>404 Not Found</title>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server.</p>
+<p>If you entered the URL manually please check your spelling and try again.</p>
+''' -}} 
+  </pre>
+  <p>If you want to show just <code>false</code> instead of 404 Not Found
+  even if there is no given user, give <code>error=ignore</code> option into
+  request.</p>
 {% endblock %}
