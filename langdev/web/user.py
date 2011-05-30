@@ -128,11 +128,9 @@ class SignInForm(Form):
 @user.route('/f/signin')
 def signin_form(form=None, return_url=None):
     if not form:
-        formdata = werkzeug.datastructures.MultiDict()
-        return_url = return_url or request.values.get('return_url')
+        form = SignInForm()
         if return_url:
-            formdata['return_url'] = return_url
-        form = SignInForm(formdata)
+            form.return_url.data = return_urk
     return render('user/signin_form', form, form=form)
 
 
