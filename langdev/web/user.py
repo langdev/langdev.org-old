@@ -129,8 +129,9 @@ class SignInForm(Form):
 def signin_form(form=None, return_url=None):
     if not form:
         form = SignInForm()
+        return_url = return_url or request.values.get('return_url')
         if return_url:
-            form.return_url.data = return_urk
+            form.return_url.data = return_url
     return render('user/signin_form', form, form=form)
 
 
