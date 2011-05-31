@@ -12,9 +12,9 @@
   <table>
     <thead>
       <tr>
-        <th>Author</th>
-        <th>Title</th>
-        <th>Written Time</th>
+        <th class="author">Author</th>
+        <th class="title">Title</th>
+        <th class="created-at">Written Time</th>
       </tr>
     </thead>
     <tbody>
@@ -24,13 +24,20 @@
         {% else %}
           <tr>
         {% endif %}
-          <td><a href="{{ url_for('user.profile',
-                                  user_login=post.author.login) }}">
-                {{- post.author }}</a></td>
-          <th><a href="{{ url_for('post', post_id=post.id) }}">
-                {{- post }}</a></th>
-          <td><time datetime="{{ post.created_at.isoformat() }}">
-                {{ post.created_at.date() }}</time></td>
+          <td class="author">
+            <a href="{{ url_for('user.profile',
+                                user_login=post.author.login) }}">
+                {{- post.author -}}
+            </a>
+          </td>
+          <th class="title">
+            <a href="{{ url_for('post', post_id=post.id) }}">{{ post }}</a>
+          </th>
+          <td class="created-at">
+            <time datetime="{{ post.created_at.isoformat() }}">
+              {{- post.created_at.date() -}}
+            </time>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

@@ -1,7 +1,7 @@
 {% macro render_pager(pager, limit, endpoint) %}
   <ul class="pager">
     {% for flag, page in pager %}
-      <li class="{{ flag is number and ' ' or flag }}">
+      <li {% if flag is not number %}class="{{ flag }}"{% endif %}>
         {% if flag == 'selected' %}
           <strong>{{ page }}</strong>
         {% else %}

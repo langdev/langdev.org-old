@@ -8,14 +8,36 @@
   <head>
     <meta charset="utf-8" />
     <title>{% block title -%} LangDev {%- endblock %}</title>
+    <!--[if lt IE 9]>
+    <script src="{{ static_url_for('html5.js') }}"></script>
+    <![endif]-->
+    <link rel="stylesheet/less" type="text/css"
+          href="{{ static_url_for('style.less') }}" />
+    <script>
+    // <![CDATA[
+    WebFontConfig = {
+      google: { families: ['Nunito'] }
+    };
+    (function() {
+      var wf = document.createElement('script');
+      wf.src = ('https:' == document.location.protocol ? 'https' : 'http')
+             + '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+      wf.type = 'text/javascript';
+      wf.async = 'true';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(wf, s);
+    })();
+    // ]]>
+    </script>
+    <script src="{{ static_url_for('less-1.1.3.min.js') }}"></script>
     <script src="{{ static_url_for('jquery-1.6.1.min.js') }}"></script>
     {% block head %}
     {% endblock %}
   </head>
-  <body>
+  <body class="{{ request.endpoint.split('.')|join(' ') }}">
     <header>
-      <h1>LangDev</h1>
-      <nav>
+      <h1><a href="{{ url_for('home.main') }}">LangDev</a></h1>
+      <nav class="user">
         {% if current_user %}
           <a href="{{ url_for('user.profile',
                               user_login=current_user.login) }}">
@@ -29,7 +51,9 @@
         {% endif %}
       </nav>
     </header>
-    {% block body %}
-    {% endblock %}
+    <div id="body">
+      {% block body %}
+      {% endblock %}
+    </div>
   </body>
 </html>
