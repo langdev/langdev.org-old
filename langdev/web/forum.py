@@ -6,6 +6,7 @@ import re
 import math
 from flask import *
 from flaskext.wtf import *
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from langdev.forum import Post, Comment
 from langdev.web import render
 import langdev.web.user
@@ -58,12 +59,12 @@ class PostForm(Form):
 
 class CommentForm(Form):
 
-    parent_id = SelectField('Reply to', coerce=int, validators=[Optional()])
+    parent = QuerySelectField('Reply to', allow_blank=True)
     body = TextAreaField('Comment', validators=[Required()])
     submit = SubmitField('Submit')
 
     def fill_comments(self, post):
-        self.parent_id.choices = [(c.id, c.body) for c in post.comments]
+        self.parent.query = post.comments
 
 
 @forum.route('/<int:post_id>')
