@@ -44,6 +44,16 @@ def create_config_file(config_filename):
         secret_key = prompt('Secret key for secure session',
                             default=secret_key)
         print>>config, 'SECRET_KEY =', repr(secret_key)
+        intersites = []
+        if prompt_bool('Are there any external sites to link', default=False):
+            while True:
+                key = prompt('External site name')
+                value = prompt('URL of ' + key)
+                intersites.append((key, value))
+                if not prompt_bool('Are there remaining external sites',
+                                   default=False):
+                    break
+        print>>config, 'INTERSITES =', repr(intersites)
     print '{0} config file has created'.format(config_filename)
 
 

@@ -55,5 +55,14 @@
       {% block body %}
       {% endblock %}
     </div>
+    {% if config.INTERSITES %}
+      <footer>
+        <nav id="intersites">
+          {% for name, url in config.INTERSITES %}
+            <a href="{{ url }}">{{ name }}</a>
+          {% endfor %}
+        </nav>
+      </footer>
+    {% endif %}
   </body>
 </html>

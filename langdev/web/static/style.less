@@ -13,6 +13,19 @@ header {
   header { font-family: Nunito, sans-serif; }
 }
 
+footer {
+  padding: 1em; border-top: 1px solid silver;
+  #intersites {
+    text-align: center; text-transform: lowercase;
+    a {
+      color: black; text-decoration: none;
+      &:hover { border-bottom: 1px solid silver; }
+      &:before { padding: 0 0.3em; content: ' / '; color: gray; }
+      &:first-child:before { content: ''; }
+    }
+  }
+}
+
 #body {
   padding: 1em;
 }
