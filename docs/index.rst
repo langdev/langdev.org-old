@@ -9,6 +9,7 @@ LangDev
 .. toctree::
    :maxdepth: 2
 
+   api
    langdev
 
 
