@@ -37,6 +37,6 @@ setup(name='LangDev',
                         'Flask', 'Werkzeug', 'Jinja2', 'Flask-WTF',
                         'Flask-Script'],
       extras_require={'docs': ['Sphinx >=1.0',
-                               'sphinxcontrib-httpdomain >=1.1.3']},
+                               'sphinxcontrib-httpdomain >=1.1.4']},
       license='AGPLv3')
 
