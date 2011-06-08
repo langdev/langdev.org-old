@@ -218,10 +218,12 @@ man_pages = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None,
-                       'http://www.sqlalchemy.org/docs/': None,
-                       'http://flask.pocoo.org/docs/': None,
-                       'http://werkzeug.pocoo.org/docs/': None,
-                       'http://jinja.pocoo.org/docs/': None}
+intersphinx_mapping = {'python': ('http://docs.python.org/', None),
+                       'sqlalchemy': ('http://www.sqlalchemy.org/docs/', None),
+                       'flask': ('http://flask.pocoo.org/docs/', None),
+                       'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
+                       'jinja': ('http://jinja.pocoo.org/docs/', None),
+                       'distribute': ('http://packages.python.org/distribute/',
+                                      None)}
 
 autodoc_member_order = 'bysource'
