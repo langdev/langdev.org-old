@@ -6,7 +6,7 @@ Setup
 -----
 
 LangDev source code is available at the `Mercurial repository
-<https://bitbucket.org/dahlia/langdev>`. Checkout this:
+<https://bitbucket.org/dahlia/langdev>`_. Checkout this:
 
 .. sourcecode:: bash
 
