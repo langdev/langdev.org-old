@@ -1,16 +1,34 @@
 {% extends '/user/base.html' %}
+{% from 'form.html' import render_form, render_raw_form %}
 {% block head %}
   <link rel="canonical" href="{{ url_for('profile', user_login=user.login,
                                                     _external=True) }}" />
 {% endblock %}
 {% block profile %}
-  <dl>
-    {% if user.url %}
-      <dt>Website</dt>
-      <dd><a href="{{ user.url }}">{{ user.url }}</a></dd>
-    {% endif %}
-    <dt>Since</dt>
-    <dd><time datetime="{{ user.created_at.isoformat() }}">
-      {{ user.created_at }}</time></dd>
-  </dl>
+  {% if form %}
+    {{ render_form(form, 'edit', user_login=user.login) }}
+  {% else %}
+    <dl>
+      {% if user.url %}
+        <dt>Website</dt>
+        <dd><a href="{{ user.url }}">{{ user.url }}</a></dd>
+      {% endif %}
+      <dt>Since</dt>
+      <dd><time datetime="{{ user.created_at.isoformat() }}">
+        {{ user.created_at }}</time></dd>
+    </dl>
+  {% endif %}
+  {% if user == current_user %}
+    {% call render_raw_form('leave', user_login=user.login,
+                                     return_url=url_for('home.main')) %}
+      <input type="submit" value="Leave" />
+    {% endcall %}
+    <script>
+    // <![CDATA[
+    $('form:last').submit(function() {
+      return window.confirm('Your action is permanent. Continue?');
+    });
+    // ]]>
+    </script>
+  {% endif %}
 {% endblock %}

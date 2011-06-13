@@ -179,6 +179,14 @@ class SignUpForm(Form):
             raise ValidationError('{0} is already taken.'.format(field.data))
 
 
+class ProfileForm(Form):
+
+    name = TextField('Screen name', validators=[Required(), Length(1, 45)])
+    email = html5.EmailField('Email', validators=[Optional(), Email()])
+    url = html5.URLField('Website', validators=[Optional(), URL()])
+    submit = SubmitField('Save')
+
+
 @user.route('/f/signup')
 def signup_form(form=None):
     form = form or SignUpForm.get_instance()
@@ -216,10 +224,38 @@ def get_user(login):
 
 
 @user.route('/<user_login>')
-def profile(user_login):
+def profile(user_login, form=None):
     """User profile page."""
     user = get_user(user_login)
-    return render('user/profile', user, user=user)
+    if g.current_user == user and not form:
+        form = ProfileForm(request.form, user)
+    return render('user/profile', user, user=user, form=form)
+
+
+@user.route('/<user_login>', methods=['PUT'])
+def edit(user_login):
+    """Edit the profile."""
+    user = get_user(user_login)
+    ensure_signin(user)
+    form = ProfileForm()
+    if form.validate():
+        with g.session.begin():
+            form.populate_obj(user)
+        return profile(user_login)
+    return profile(user_login, form)
+
+
+@user.route('/<user_login>', methods=['DELETE'])
+def leave(user_login):
+    user = get_user(user_login)
+    ensure_signin(user)
+    with g.session.begin():
+        g.session.delete(user)
+    set_current_user(None)
+    return_url = request.values.get('return_url')
+    if return_url:
+        return redirect(return_url)
+    return ''
 
 
 @user.route('/<user_login>/posts')
