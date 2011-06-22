@@ -70,7 +70,15 @@
         </dl>
       </header>
       <section class="content">{{ post.body_html|safe }}</section>
-      <footer>{{ post.comments.count() }} comments</footer>
+      <footer>
+        <a href="{{ url_for('post', post_id=post.id) -}}
+                 {% if post.replies.first() -%}
+                   #comment-{{ post.replies.first().id }}
+                 {%- else -%}
+                   #reply-form
+                 {%- endif %}">
+          {{- post.comments.count() }} comments</a>
+      </footer>
     </article>
   {% endfor %}
   </div>
