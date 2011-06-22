@@ -51,7 +51,15 @@ footer {
       }
       tbody {
         tr {
-          th { width: 70%; text-align: left; font-weight: normal; }
+          td.title {
+            width: 70%; text-align: left; font-weight: normal;
+            a { display: block; }
+          }
+          &:hover { background-color: #eee; }
+          
+          border-top: 1px solid silver;
+          line-height: 150%;
+          &.sticky + :not(.sticky) { border-top: 1px solid gray; }
         }
       }
     }
