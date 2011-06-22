@@ -31,22 +31,34 @@ def posts():
     """Show a list of posts.
 
     :query view: one of ``summary`` or ``board``. default is ``summary``.
+    :query next: id of the next post what you want to fetch.
+                 It can be useful for calling API, or infinite scroll.
     :query offset: offset from a latest post.
-    :query limit: number of posts to show. default is 20.
+    :query limit: number of posts to show. default is 20, maximum is 100.
     :status 200: no error.
+    :status 404: ``next`` post is not exists.
 
     """
     posts = g.session.query(Post) \
                      .order_by(Post.sticky.desc(), Post.created_at.desc())
     cnt = posts.count()
     view = request.args.get('view', 'summary')
+    next_id = request.args.get('next')
     offset = int(request.args.get('offset', 0))
-    limit = int(request.args.get('limit', 20))
-    posts = posts.offset(offset).limit(limit)
+    limit = min(int(request.args.get('limit', 20)), 100)
+    if next_id:
+        basis = g.session.query(Post).get(next_id)
+        if not basis:
+            abort(404)
+        posts = posts.filter(~Post.sticky) \
+                     .filter(Post.created_at <= basis.created_at)
+    paged_posts = posts.offset(offset).limit(limit)
+    next = posts.offset(offset+limit).first()
     pager = langdev.web.pager.Pager(math.ceil(cnt / float(limit)),
                                     1 + offset / limit)
     return render('forum/posts', posts,
-                  view=view, posts=posts, pager=pager, limit=limit)
+                  view=view, next=next,
+                  posts=paged_posts, pager=pager, limit=limit)
 
 
 @forum.route('/atom.xml')
