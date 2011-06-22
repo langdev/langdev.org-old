@@ -16,7 +16,7 @@
   {% if view == 'summary' %}
     {% set grouped = posts|groupby('sticky') %}
     {% set posts = (grouped[True]|default({})).list %}
-    {% set other_posts = grouped[False].list %}
+    {% set other_posts = (grouped[False]|default({})).list %}
   {% endif %}
   {% if posts %}
   <table>

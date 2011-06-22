@@ -319,10 +319,6 @@ def render(template_name, value, **context):
     .. todo:: Adding :mailheader:`Vary` header.
 
     """
-    accept_mimetypes = flask.request.accept_mimetypes
-    if len(accept_mimetypes) == 1 and accept_mimetypes.values()[0] == '*/*':
-        accept_mimetypes = [(default_content_type, 1)]
-        accept_mimetypes = werkzeug.datastructures.MIMEAccept(accept_mimetypes)
     jinja_env = flask.current_app.jinja_env
     def _tpl_avail(postfix):
         try:
@@ -330,8 +326,16 @@ def render(template_name, value, **context):
         except jinja2.TemplateNotFound:
             return False
         return True
-    types = (mimetype for mimetype, f in content_types.iteritems()
-                      if callable(f) or not f.startswith('.') or _tpl_avail(f))
+    types = [mimetype for mimetype, f in content_types.iteritems()
+                      if callable(f) or not f.startswith('.') or _tpl_avail(f)]
+    # workaround for IE8. it sent wrong Accept header like below -_-
+    # " Accept: image/pjpeg, image/pjpeg, image/gif, image/jpeg, */* "
+    m = ((mime, q) for mime, q in flask.request.accept_mimetypes
+                   if mime in types or mime == '*/*')
+    accept_mimetypes = werkzeug.datastructures.MIMEAccept(m)
+    if len(accept_mimetypes) == 1 and accept_mimetypes.values()[0] == '*/*':
+        accept_mimetypes = [(default_content_type, 1)]
+        accept_mimetypes = werkzeug.datastructures.MIMEAccept(accept_mimetypes)
     content_type = accept_mimetypes.best_match(types)
     try:
         serializer = content_types[content_type]
