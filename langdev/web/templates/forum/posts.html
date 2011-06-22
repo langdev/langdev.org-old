@@ -11,9 +11,10 @@
   {% endif %}
   {% if view == 'summary' %}
     {% set grouped = posts|groupby('sticky') %}
-    {% set posts = grouped[True].list %}
+    {% set posts = (grouped[True]|default({})).list %}
     {% set other_posts = grouped[False].list %}
   {% endif %}
+  {% if posts %}
   <table>
     <thead>
       <tr>
@@ -35,9 +36,9 @@
                 {{- post.author -}}
             </a>
           </td>
-          <th class="title">
+          <td class="title">
             <a href="{{ url_for('post', post_id=post.id) }}">{{ post }}</a>
-          </th>
+          </td>
           <td class="created-at">
             <time datetime="{{ post.created_at.isoformat() }}">
               {{- post.created_at.date() -}}
@@ -47,6 +48,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% endif %}
   {% if other_posts %}
   <div id="post-summaries">
   {% for post in other_posts %}
