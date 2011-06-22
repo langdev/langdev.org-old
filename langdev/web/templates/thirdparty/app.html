@@ -1,4 +1,5 @@
 {% extends 'thirdparty/base.html' %}
+{% from 'form.html' import render_raw_form %}
 {% block body %}
   <dl class="application">
     <dt class="title">Title</dt>
@@ -101,4 +102,16 @@ Content-Type: text/html
   <p>If you want to show just <code>false</code> instead of 404 Not Found
   even if there is no given user, give <code>error=ignore</code> option into
   request.</p>
+
+  <h2>Delete</h2>
+  {% call render_raw_form('delete_app', app_key=app.key) %}
+    <input type="submit" value="Delete" />
+  {% endcall %}
+  <script>
+  // <![CDATA[
+  $('form').submit(function() {
+    return window.confirm('This action is permanent. Continue?');
+  });
+  // ]]>
+  </script>
 {% endblock %}

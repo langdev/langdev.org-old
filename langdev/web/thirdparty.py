@@ -73,6 +73,16 @@ def app(app_key):
     return render('thirdparty/app', app, app=app)
 
 
+@thirdparty.route('/<app_key>', methods=['DELETE'])
+def delete_app(app_key):
+    """Deletes an application."""
+    app = get_app(app_key)
+    langdev.web.user.ensure_signin(app.owner)
+    with g.session.begin():
+        g.session.delete(app)
+    return redirect(url_for('register'), 302)
+
+
 @thirdparty.route('/<app_key>/sso/<user_login>', methods=['GET', 'POST'])
 def sso(app_key, user_login):
     """Simple SSO API."""
