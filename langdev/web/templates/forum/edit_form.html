@@ -1,5 +1,8 @@
 {% extends '/forum/base.html' %}
 {% from 'form.html' import render_form %}
 {% block body %}
+  {% if form.errors %}
+    {{ form.errors }}
+  {% endif %}
   {{ render_form(form, 'edit', post_id=post.id) }}
 {% endblock %}

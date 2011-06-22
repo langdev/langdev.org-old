@@ -28,15 +28,25 @@ def get_post(post_id):
 
 @forum.route('/')
 def posts():
+    """Show a list of posts.
+
+    :query view: one of ``summary`` or ``board``. default is ``summary``.
+    :query offset: offset from a latest post.
+    :query limit: number of posts to show. default is 20.
+    :status 200: no error.
+
+    """
     posts = g.session.query(Post) \
                      .order_by(Post.sticky.desc(), Post.created_at.desc())
     cnt = posts.count()
+    view = request.args.get('view', 'summary')
     offset = int(request.args.get('offset', 0))
     limit = int(request.args.get('limit', 20))
     posts = posts.offset(offset).limit(limit)
     pager = langdev.web.pager.Pager(math.ceil(cnt / float(limit)),
                                     1 + offset / limit)
-    return render('forum/posts', posts, posts=posts, pager=pager, limit=limit)
+    return render('forum/posts', posts,
+                  view=view, posts=posts, pager=pager, limit=limit)
 
 
 @forum.route('/atom.xml')

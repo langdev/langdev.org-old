@@ -9,6 +9,11 @@
   {% if current_user %}
     <a href="{{ url_for('write_form') }}">Write a post</a>
   {% endif %}
+  {% if view == 'summary' %}
+    {% set grouped = posts|groupby('sticky') %}
+    {% set posts = grouped[True].list %}
+    {% set other_posts = grouped[False].list %}
+  {% endif %}
   <table>
     <thead>
       <tr>
@@ -42,5 +47,33 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if other_posts %}
+  <div id="post-summaries">
+  {% for post in other_posts %}
+    <article id="post-{{ post.id }}">
+      <header>
+        <dl class="info">
+          <dt class="author">Author:</dt>
+          <dd class="author"><a href="{{
+              url_for('user.profile', user_login=post.author.login) }}">
+              {{- post.author -}}
+          </a></dd>
+          <dt class="created-at">Written Time:</dt>
+          <dd class="created-at"><time class="created-at"
+                              datetime="{{ post.created_at.isoformat() }}">
+            {{- post.created_at.date() -}}
+          </time></dd>
+          <dt class="title">Title:</dt>
+          <dd class="title"><h1><a href="{{ url_for('post', post_id=post.id) }}">
+            {{- post -}}
+          </a></h1></dd>
+        </dl>
+      </header>
+      <section class="content">{{ post.body_html|safe }}</section>
+      <footer>{{ post.comments.count() }} comments</footer>
+    </article>
+  {% endfor %}
+  </div>
+  {% endif %}
   {{ render_pager(pager, limit, 'posts') }}
 {% endblock %}
