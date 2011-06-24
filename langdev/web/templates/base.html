@@ -8,6 +8,8 @@
   <head>
     <meta charset="utf-8" />
     <title>{% block title -%} LangDev {%- endblock %}</title>
+    <link rel="shortcut icon" type="image/icon"
+          href="{{ static_url_for('favicon.ico') }}" /> 
     <!--[if lt IE 9]>
     <script src="{{ static_url_for('html5.js') }}"></script>
     <![endif]-->
