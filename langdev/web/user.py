@@ -181,6 +181,12 @@ class SignUpForm(Form):
 
 class ProfileForm(Form):
 
+    password = PasswordField(
+        'Password',
+        validators=[Required(), EqualTo('confirm',
+                                        message='Passwords must match.')]
+    )
+    confirm = PasswordField('Repeat Password', validators=[Required()])
     name = TextField('Screen name', validators=[Required(), Length(1, 45)])
     email = html5.EmailField('Email', validators=[Optional(), Email()])
     url = html5.URLField('Website', validators=[Optional(), URL()])
