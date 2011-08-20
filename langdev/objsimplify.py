@@ -114,6 +114,18 @@ def camelCase(identifier):
     return ''.join(words)
 
 
+class Result(dict):
+    """A dictionary subclass that contains the result. All keys are
+    :func:`idmap`-ed and all values are :func:`simplify`-ed during
+    :func:`simplify`-ing.
+
+    .. note::
+
+       It assumes that all keys are strings.
+
+    """
+
+
 #: .. warning:: Internal use only. Use :func:`simplify` instead.
 #:
 #: The function that really implements simplification per types, without
@@ -130,6 +142,13 @@ def transform(value, **options):
     options = dict(options)
     options['under_list'] = True
     return [simplify(v, **options) for v in value]
+
+
+@transform.visit(Result)
+def transform(value, **options):
+    idmap = options['identifier_map']
+    return dict((idmap(k), simplify(v, **options))
+                for k, v in value.iteritems())
 
 
 @transform.visit(langdev.user.User)

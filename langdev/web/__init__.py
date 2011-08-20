@@ -46,6 +46,7 @@ and Jinja2_ also.
 import os.path
 import flask
 import flask.globals
+import flaskext.mail
 import werkzeug
 import jinja2
 import sqlalchemy
@@ -198,6 +199,7 @@ def create_app(modifier=None, config_filename=None):
     app.error_handlers.update(error_handlers)
     app.jinja_env.globals['method_for'] = method_for
     app.jinja_env.filters.update(template_filters)
+    app.mail = flaskext.mail.Mail(app)
     middlewares = list(wsgi_middlewares)
     middlewares.extend(app.config.get('WSGI_MIDDLEWARES', []))
     for import_name in middlewares:

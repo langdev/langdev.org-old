@@ -8,11 +8,19 @@
 
 """
 import re
+import time
+import datetime
+import hmac
+import hashlib
+import textwrap
 from flask import *
 from flaskext.wtf import *
+from flaskext.mail import Message
+from sqlalchemy import orm
 import werkzeug.datastructures
 from langdev.user import User
 from langdev.web import before_request, errorhandler, render
+from langdev.objsimplify import Result
 
 
 #: User web pages module.
@@ -221,10 +229,13 @@ def signup():
     return signup_form(form=form)
 
 
-def get_user(login):
+def get_user(login, *options):
     """Gets a user by its ``login`` name."""
+    query = g.session.query(User).filter_by(login=login)
+    for option in options:
+        query = query.options(option)
     try:
-        return g.session.query(User).filter_by(login=login)[0]
+        return query[0]
     except IndexError:
         abort(404)
 
@@ -269,5 +280,143 @@ def posts(user_login):
     """Posts a user wrote."""
     user = get_user(user_login)
     posts = user.posts
-    return render('/user/posts', posts, user=user, posts=posts)
+    return render('user/posts', posts, user=user, posts=posts)
+
+
+class PasswordFindingForm(Form):
+
+    login = TextField('Login name',
+                      validators=[Required(), Length(2, 45),
+                                  Regexp(User.LOGIN_PATTERN)])
+    submit = SubmitField('Find')
+
+    def validate_login(form, field):
+        if g.session.query(User).filter_by(login=field.data).count() < 1:
+            raise ValidationError('There is no {0}.'.format(field.data))
+
+
+@user.route('/f/orgot')
+def find_password_form(form=None):
+    form = form or PasswordFindingForm()
+    return render('user/find_password_form', form, form=form)
+
+
+@user.route('/f/orgot', methods=['POST'])
+def find_password():
+    form = PasswordFindingForm()
+    if form.validate():
+        url = url_for('user.request_find_password',
+                      user_login=form.data['login'])
+        return redirect(url, 307)
+    return find_password_form(form=form)
+
+
+def generate_token(user, expiration=3600 * 6):
+    expired_at = int(time.time()) + expiration
+    expired_at_hex = hex(expired_at)[2:]
+    sumstr = '{0},{1},{2}'.format(user.id, str(user.password), expired_at)
+    checksum = hmac.new(current_app.secret_key, sumstr, hashlib.sha1)
+    return checksum.hexdigest() + expired_at_hex, expired_at
+
+
+def is_token_expired(user, token):
+    if len(token) < 41:
+        abort(404)
+    checksum = token[:40]
+    expired_at = int(token[40:], 16)
+    sumstr = '{0},{1},{2}'.format(user.id, str(user.password), expired_at)
+    checksum2 = hmac.new(current_app.secret_key, sumstr, hashlib.sha1)
+    if checksum != checksum2.hexdigest():
+        abort(404)
+    return expired_at < time.time()
+
+
+def hide_email(email):
+    """Hides an email address.
+
+    .. sourcecode:: pycon
+
+       >>> hide_email('hong.qigong@gaibang.org.cn')
+       'h***.******@*******.***.*n'
+       >>> hide_email('amaterasu+ladios.sopp@akd.gov')
+       'a********+******.****@***.**v'
+       >>> hide_email('ab@cd.co.kr')
+       'a*@**.**.*r'
+
+    :param email: an email address to hide
+    :type email: :class:`basestring`
+    :returns: a hidden email address
+    :rtype: :class:`basestring`
+
+    """
+    hidden = re.sub(r'[^.+@]', '*', email)
+    return email[0] + hidden[1:-1] + email[-1]
+
+
+@user.route('/<user_login>/password-findings')
+def request_find_password_form(user_login):
+    user = get_user(user_login)
+    return render('user/request_find_password_form', user, user=user)
+
+
+@user.route('/<user_login>/password-findings', methods=['POST'])
+def request_find_password(user_login):
+    user = get_user(user_login, orm.undefer_group('profile'))
+    if user.email:
+        token, expired_at = generate_token(user)
+        url = url_for('change_password_form',
+                      user_login=user.login, token=token, _external=True)
+        expired_at = datetime.datetime.utcfromtimestamp(expired_at)
+        msg = Message('[LangDev.org] Change your password: ' + user.login,
+                      recipients=[user.email])
+        msg.body = textwrap.dedent('''
+            You can change your password through the following link:
+            {url}
+
+            But the above link will be expired at {expired_at} UTC.
+        ''').format(url=url, expired_at=expired_at)
+        current_app.mail.send(msg)
+        email = hide_email(user.email)
+        result = Result(user=user, email=email)
+        status_code = 201
+    else:
+        result = Result(user=user, error='Has no email address')
+        status_code = 403
+    response = render('user/request_find_password', result, **result)
+    response.status_code = status_code
+    return response
+
+
+class ChangePasswordForm(Form):
+
+    password = PasswordField(
+        'Password',
+        validators=[Required(), EqualTo('confirm',
+                                        message='Passwords must match.')]
+    )
+    confirm = PasswordField('Repeat Password', validators=[Required()])
+    submit = SubmitField('Save')
+
+
+@user.route('/<user_login>/password-findings/<token>')
+def change_password_form(user_login, token, form=None):
+    user = get_user(user_login)
+    expired = is_token_expired(user, token)
+    form = form or ChangePasswordForm()
+    response = render('user/change_password_form', form,
+                      form=form, user=user, token=token, expired=expired)
+    if expired:
+        response.status_code = 403
+    return response
+
+
+@user.route('/<user_login>/password-findings/<token>', methods=['POST'])
+def change_password(user_login, token):
+    user = get_user(user_login)
+    form = ChangePasswordForm()
+    if not is_token_expired(user, token) and form.validate():
+        with g.session.begin():
+            form.populate_obj(user)
+        return render('user/change_password', user, user=user)
+    return change_password_form(user_login=user_login, token=token, form=form)
 

@@ -35,7 +35,7 @@ setup(name='LangDev',
       zip_safe=False,
       install_requires=['SQLAlchemy >=0.7', 'markdown2',
                         'Flask', 'Werkzeug', 'Jinja2', 'Flask-WTF',
-                        'Flask-Script'],
+                        'Flask-Mail', 'Flask-Script'],
       extras_require={'docs': ['Sphinx >=1.0',
                                'sphinxcontrib-httpdomain >=1.1.4']},
       license='AGPLv3')
