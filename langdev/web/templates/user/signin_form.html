@@ -3,4 +3,5 @@
 {% block body %}
   {{ render_form(form, 'user.signin') }}
   <a href="{{ url_for('user.signup_form') }}">Sign up</a>
+  <a href="{{ url_for('user.find_password_form') }}">I forgot my password</a>
 {% endblock %}
