@@ -26,7 +26,19 @@
     <script>
     // <![CDATA[
     $('form:last').submit(function() {
-      return window.confirm('Your action is permanent. Continue?');
+      var chars = 'abcdefghijklmnopqrstuvwxyz';
+      chars += chars.toUpperCase() + '0123456789';
+      var random = '';
+      for (var i = 0; i < 7; ++i) {
+        random += chars.charAt(window.parseInt(Math.random() * chars.length));
+      }
+      var confirm = window.prompt('Type "' + random + '" to confirm:');
+      if (confirm == random) {
+        return window.confirm('Your action is permanent. Continue?');
+      } else if (confirm !== null) {
+        window.alert('Not correct; cancelled.');
+      }
+      return false;
     });
     // ]]>
     </script>
