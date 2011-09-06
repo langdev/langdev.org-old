@@ -11,7 +11,8 @@
 {% endblock %}
 {% block body %}
   {% if current_user %}
-    <a href="{{ url_for('write_form') }}">Write a post</a>
+    <a href="{{ url_for('write_form') }}"
+       class="btn large">Write a post</a>
   {% endif %}
   {% if view == 'summary' %}
     {% set grouped = posts|groupby('sticky') %}
@@ -19,7 +20,7 @@
     {% set other_posts = (grouped[False]|default({})).list %}
   {% endif %}
   {% if posts %}
-  <table>
+  <table class="zebra-striped">
     <thead>
       <tr>
         <th class="author">Author</th>

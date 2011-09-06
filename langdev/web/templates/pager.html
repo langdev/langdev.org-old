@@ -1,15 +1,34 @@
+{% from 'macro.html' import only_for_style %}
 {% macro render_pager(pager, limit, endpoint) %}
-  <ul class="pager">
-    {% for flag, page in pager %}
-      <li {% if flag is not number %}class="{{ flag }}"{% endif %}>
-        {% if flag == 'selected' %}
-          <strong>{{ page }}</strong>
-        {% else %}
+  {% set pager = pager|list %}
+  <div class="pagination">
+    <ul>
+      {% for flag, page in pager %}
+        {% if flag == 'last' %}
+          {% call only_for_style() %}
+            <li class="disabled"><a>&#8230;</a></li>
+          {% endcall %}
+        {% endif %}
+        <li class="{% if loop.last or flag == 'last' %} next {% endif %}
+                   {% if flag == 'selected' %} active {% endif %}">
           <a href="{{ url_for(endpoint, offset=(page - 1) * limit,
                                         limit=limit,
-                                        **kwargs) }}">{{ page }}</a>
+                                        **kwargs) }}">
+            {% if flag == 'first' %}
+              &#8592; First ({{ page }})
+            {% elif flag == 'last' %}
+              Last ({{ page }}) &#8594;
+            {% else %}
+              {{ page }}
+            {% endif %}
+          </a>
+        </li>
+        {% if flag == 'first' %}
+          {% call only_for_style() %}
+            <li class="disabled"><a>&#8230;</a></li>
+          {% endcall %}
         {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
+      {% endfor %}
+    </ul>
+  </div>
 {% endmacro %}

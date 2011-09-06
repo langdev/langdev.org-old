@@ -30,7 +30,7 @@ def get_post(post_id):
 def posts():
     """Show a list of posts.
 
-    :query view: one of ``summary`` or ``board``. default is ``summary``.
+    :query view: one of ``summary`` or ``table``. default is ``table``
     :query next: id of the next post what you want to fetch.
                  It can be useful for calling API, or infinite scroll.
     :query offset: offset from a latest post.
@@ -42,7 +42,7 @@ def posts():
     posts = g.session.query(Post) \
                      .order_by(Post.sticky.desc(), Post.created_at.desc())
     cnt = posts.count()
-    view = request.args.get('view', 'summary')
+    view = request.args.get('view', 'table')
     next_id = request.args.get('next')
     offset = int(request.args.get('offset', 0))
     limit = min(int(request.args.get('limit', 20)), 100)
@@ -73,9 +73,12 @@ def atom():
 
 class PostForm(Form):
 
-    title = TextField('Title', validators=[Required()])
-    body = TextAreaField('Body', validators=[Required()])
-    sticky = BooleanField('Sticky')
+    title = TextField('Title', validators=[Required()],
+                      description='This will be shown on the list.')
+    body = TextAreaField('Body', validators=[Required()],
+                         description='Markdown format enabled.')
+    sticky = BooleanField('Sticky',
+                          description='Show this post always on top.')
     submit = SubmitField('Submit')
 
 

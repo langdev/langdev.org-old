@@ -198,6 +198,7 @@ def create_app(modifier=None, config_filename=None):
     app.after_request_funcs.setdefault(None, []).extend(after_request_funcs)
     app.error_handlers.update(error_handlers)
     app.jinja_env.globals['method_for'] = method_for
+    app.jinja_env.globals['require'] = werkzeug.utils.import_string
     app.jinja_env.filters.update(template_filters)
     app.mail = flaskext.mail.Mail(app)
     middlewares = list(wsgi_middlewares)

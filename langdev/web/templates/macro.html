@@ -1,0 +1,7 @@
+{%- macro only_for_style() -%}
+  <script>
+  // <![CDATA[
+  document.write({{ caller()|safe|tojson|safe }});
+  // ]]>
+  </script>
+{%- endmacro -%}

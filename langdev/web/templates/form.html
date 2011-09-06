@@ -12,13 +12,28 @@
   </form>
 {% endmacro %}
 
-{% macro render_form(form, endpoint) %}
+{% macro render_form(form, endpoint, legend=None, submit_class='primary') %}
+  {% set button_types = ['SubmitField'] %}
+  {% set rest = caller and caller() or '' %}
   {% call render_raw_form(endpoint, **kwargs) %}
     <fieldset>
+      {% if legend %}
+        <legend>{{ legend }}</legend>
+      {% endif %}
       {% for field in form %}
-        {{ render_field(field, form.errors[field.name]) }}
+        {% if field.type not in button_types %}
+          {{ render_field(field, form.errors[field.name]) }}
+        {% endif %}
       {% endfor %}
     </fieldset>
+    <div class="actions">
+      {% for field in form %}
+        {% if field.type in button_types %}
+          {{ field(class_='btn ' + submit_class)|safe }}
+        {% endif %}
+      {% endfor %}
+      {{ rest }}
+    </div>
   {% endcall %}
 {% endmacro %}
 
@@ -26,18 +41,40 @@
   {% if field.type == 'HiddenField' %}
     {{ field() }}
   {% else %}
-    <div class="{{ field.name }} {{ field.flags.__dict__.keys()|join(' ') }}">
-      {% if field.type != 'SubmitField' %}
+    <div class="clearfix
+                {% if errors %} error {% endif %}
+                {{ field.name }} {{ field.flags.__dict__.keys()|join(' ') }}">
+      {% if field.type == 'BooleanField' %}
+        <label>{{ field.label.text }}</label>
+      {% else %}
         {{ field.label }}
       {% endif %}
-      {{ field()|safe }}
-      {% if errors %}
-        <ul>
-          {% for error in errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
+      <div class="input">
+        {% if field.type == 'BooleanField' %}
+          <ul class="inputs-list">
+            <li><label>{{ field() }}
+                       <span>{{ field.description }}</span></label></li>
+          </ul>
+        {% else %}
+          {{ field()|safe }}
+          {% with cls = field.type == 'TextAreaField' and 'block' or 'inline' %}
+            {% if field.description %}
+              <span class="help-{{ cls }}">{{ field.description }}</span>
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+        {% if errors|count == 1 %}
+          <span class="help-inline">
+            {{ errors[0] }}
+          </span>
+        {% elif errors|count > 1 %}
+          <ul class="help-block">
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
     </div>
   {% endif %}
 {% endmacro %}

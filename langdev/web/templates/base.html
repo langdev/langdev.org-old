@@ -1,3 +1,4 @@
+{% from 'macro.html' import only_for_style %}
 {%- macro static_url_for(filename) -%}
   {%- set url = url_for('.static', filename=filename) -%}
   {%- if config['DEBUG'] -%} {{ url.replace('.min.', '.') }}
@@ -15,56 +16,72 @@
     <![endif]-->
     <link rel="stylesheet/less" type="text/css"
           href="{{ static_url_for('style.less') }}" />
-    <script>
-    // <![CDATA[
-    WebFontConfig = {
-      google: { families: ['Nunito'] }
-    };
-    (function() {
-      var wf = document.createElement('script');
-      wf.src = ('https:' == document.location.protocol ? 'https' : 'http')
-             + '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
-      wf.type = 'text/javascript';
-      wf.async = 'true';
-      var s = document.getElementsByTagName('script')[0];
-      s.parentNode.insertBefore(wf, s);
-    })();
-    // ]]>
-    </script>
     <script src="{{ static_url_for('less-1.1.3.min.js') }}"></script>
     <script src="{{ static_url_for('jquery-1.6.2.min.js') }}"></script>
     {% block head %}
     {% endblock %}
   </head>
   <body class="{{ request.endpoint.split('.')|join(' ') }}">
-    <header>
+    <header class="topbar">
       <h1><a href="{{ url_for('home.main') }}">LangDev</a></h1>
-      <nav class="user">
+      {% call only_for_style() %}
+        <div class="topbar-inner"><div class="container">
+        <h3><a href="{{ url_for('home.main') }}">LangDev</a></h3>
+      {% endcall %}
+      <ul class="nav">
+        <li {% if request.endpoint.startswith('forum.') %}
+              class="active"
+            {% endif %}>
+          <a href="{{ url_for('forum.posts') }}">Forum</a>
+        </li>
+        {% if config.INTERSITES %}
+          {% for name, url in config.INTERSITES %}
+            <li><a href="{{ url }}">{{ name }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+      <ul class="nav secondary-nav user">
+        {% call only_for_style() %}
+          <li {% if request.endpoint.startswith('user.') %}
+                class="active"
+              {% endif %}>
+            <a href="#user-nav" class="dropdown-toggle">
+              {% if current_user %}
+                {{ current_user }}
+              {% else %}
+                Sign in
+              {% endif %}
+            </a>
+            <ul id="user-nav" class="dropdown-menu">
+        {% endcall %}
+        <script>
+        // <![CDATA[
+        $('.dropdown-toggle').click(function() {
+          $(this.parentNode).toggleClass('open');
+        });
+        // ]]>
+        </script>
         {% if current_user %}
-          <a href="{{ url_for('user.profile',
-                              user_login=current_user.login) }}">
-            {{- current_user -}}
-          </a>
+          <li><a href="{{ url_for('user.profile',
+                                  user_login=current_user.login) }}">
+              {{- current_user -}}</a></li>
           <a href="{{ url_for('user.signout') }}">Sign out</a>
         {% else %}
-          <a href="{{ url_for('user.signin_form',
-                              return_url=request.url) }}">Sign in</a>
-          <a href="{{ url_for('user.signup_form') }}">Sign up</a>
+          <li><a href="{{ url_for('user.signin_form',
+                            return_url=request.url) }}">Sign in</a></li>
+          <li><a href="{{ url_for('user.signup_form') }}">Sign up</a></li>
         {% endif %}
-      </nav>
+        {% call only_for_style() %}
+          </ul></li>
+        {% endcall %}
+      </ul>
+      {% call only_for_style() %}
+        </div></div>
+      {% endcall %}
     </header>
     <div id="body">
       {% block body %}
       {% endblock %}
     </div>
-    {% if config.INTERSITES %}
-      <footer>
-        <nav id="intersites">
-          {% for name, url in config.INTERSITES %}
-            <a href="{{ url }}">{{ name }}</a>
-          {% endfor %}
-        </nav>
-      </footer>
-    {% endif %}
   </body>
 </html>

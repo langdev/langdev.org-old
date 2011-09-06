@@ -1,7 +1,10 @@
 {% extends 'user/base.html' %}
 {% from 'form.html' import render_form %}
 {% block body %}
-  {{ render_form(form, 'user.signin') }}
-  <a href="{{ url_for('user.signup_form') }}">Sign up</a>
-  <a href="{{ url_for('user.find_password_form') }}">I forgot my password</a>
+  {% call render_form(form, 'user.signin', 'Sign in', 'primary') %}
+    <a href="{{ url_for('user.signup_form') }}"
+       class="btn info">Sign up</a>
+    <a href="{{ url_for('user.find_password_form') }}"
+       class="btn">I forgot my password</a>
+  {% endcall %}
 {% endblock %}
