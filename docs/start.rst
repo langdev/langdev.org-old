@@ -5,12 +5,12 @@ Getting started
 Setup
 -----
 
-LangDev source code is available at the `Mercurial repository
-<https://bitbucket.org/dahlia/langdev>`_. Checkout this:
+LangDev source code is available at the `GitHub repository
+<https://github.com/langdev/langdev.org>`_. Checkout this:
 
 .. sourcecode:: bash
 
-   $ hg clone https://bitbucket.org/dahlia/langdev
+   $ hg clone https://github.com/langdev/langdev.org langdev
    $ cd langdev/
    langdev$
 
