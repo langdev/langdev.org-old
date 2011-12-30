@@ -1,7 +1,7 @@
 """:mod:`langdev.user` --- LangDev users
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module provides user and authentication facilities that service-agnostic.
+This module provides user and authentication facilities that is service-agnostic.
 Many services for LangDev can provide single sign on based on this module.
 
 .. sourcecode:: pycon
