@@ -103,6 +103,17 @@ Content-Type: text/html
   even if there is no given user, give <code>error=ignore</code> option into
   request.</p>
 
+  <h3>Request the user information</h3>
+  <p>If you need the information of given user when the authentication has
+  succeed, give <code>with=userinfo</code> option into request.</p>
+
+  <h3>Response example: when <code>with=userinfo</code> option was given</h3>
+  <pre>HTTP/1.1 200 OK
+Vary: Accept
+Content-Type: application/json
+
+{{ require('langdev.web.serializers').json(current_user) }}</pre>
+
   <h2>Delete</h2>
   {% call render_raw_form('delete_app', app_key=app.key) %}
     <input type="submit" value="Delete" />
