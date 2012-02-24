@@ -166,7 +166,7 @@ def get_comment(comment_id, post_id=None):
 def write_comment(post_id, comment_id=None):
     if comment_id:
         parent = get_comment(comment_id, post_id)
-        post_object = comment_object.post
+        post_object = parent.post
     else:
         post_object = get_post(post_id)
         parent = None
