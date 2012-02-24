@@ -2,9 +2,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import re
-from flask import *
-from flaskext.wtf import *
+from flask import Blueprint, request, g, redirect, url_for, abort
+from flaskext import wtf
 import werkzeug.exceptions
 import sqlalchemy.orm.exc
 from langdev.user import User
@@ -19,13 +18,14 @@ import langdev.web.user
 thirdparty = Blueprint('thirdparty', __name__)
 
 
-class ApplicationForm(Form):
+class ApplicationForm(wtf.Form):
 
-    title = TextField('Application title',
-                      validators=[Required(), Length(2, 100)])
-    url = html5.URLField('Application website', validators=[Required()])
-    description = TextAreaField('Description', validators=[Required()])
-    submit = SubmitField('Create application')
+    title = wtf.TextField('Application title',
+                          validators=[wtf.Required(), wtf.Length(2, 100)])
+    url = wtf.html5.URLField('Application website',
+                             validators=[wtf.Required()])
+    description = wtf.TextAreaField('Description', validators=[wtf.Required()])
+    submit = wtf.SubmitField('Create application')
 
 
 @thirdparty.route('/')
