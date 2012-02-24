@@ -7,7 +7,7 @@ from flask import Blueprint, redirect, url_for
 
 #: Home blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`modular-applications-with-blueprints`
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
 home = Blueprint('home', __name__)
 
 

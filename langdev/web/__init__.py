@@ -70,7 +70,7 @@ import langdev.orm
 #:       The function that imports an object based on a string, provided by
 #:       Werkzeug_.
 #:
-#:    Flask --- :ref:`modular-applications-with-blueprints`
+#:    Flask --- :ref:`flask:blueprints`
 #:       Flask_ provides 'blueprint' facilities for large applications.
 #:
 #: .. _Werkzeug: http://werkzeug.pocoo.org/

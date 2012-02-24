@@ -15,7 +15,7 @@ import langdev.web.user
 
 #: Third-party application pages blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`modular-applications-with-blueprints`
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
 thirdparty = Blueprint('thirdparty', __name__)
 
 

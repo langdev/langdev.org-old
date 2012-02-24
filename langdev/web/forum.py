@@ -15,7 +15,7 @@ import langdev.web.pager
 
 #: Forum web pages blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`modular-applications-with-blueprints`
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
 forum = Blueprint('forum', __name__)
 
 

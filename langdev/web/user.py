@@ -24,7 +24,7 @@ from langdev.objsimplify import Result
 
 #: User web pages blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`modular-applications-with-blueprints`
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
 user = Blueprint('user', __name__)
 
 
