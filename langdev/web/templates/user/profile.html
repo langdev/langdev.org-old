@@ -1,12 +1,12 @@
 {% extends '/user/base.html' %}
 {% from 'form.html' import render_form, render_raw_form %}
 {% block head %}
-  <link rel="canonical" href="{{ url_for('profile', user_login=user.login,
+  <link rel="canonical" href="{{ url_for('.profile', user_login=user.login,
                                                     _external=True) }}" />
 {% endblock %}
 {% block profile %}
   {% if form %}
-    {{ render_form(form, 'edit', user_login=user.login) }}
+    {{ render_form(form, '.edit', user_login=user.login) }}
   {% else %}
     <dl>
       {% if user.url %}
@@ -19,8 +19,8 @@
     </dl>
   {% endif %}
   {% if user == current_user %}
-    {% call render_raw_form('leave', user_login=user.login,
-                                     return_url=url_for('home.main')) %}
+    {% call render_raw_form('.leave', user_login=user.login,
+                                      return_url=url_for('home.main')) %}
       <input type="submit" value="Leave" />
     {% endcall %}
     <script>

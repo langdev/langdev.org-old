@@ -1,12 +1,12 @@
 {% extends 'thirdparty/base.html' %}
 {% from 'form.html' import render_form %}
 {% block body %}
-  {{ render_form(form, 'register') }}
+  {{ render_form(form, '.register') }}
   {% if current_user.applications %}
     <h2>Your Applications</h2>
     <ul class="applications">
       {% for app in current_user.applications %}
-        <li><a href="{{ url_for('app', app_key=app.key) }}">{{ app }}</a></li>
+        <li><a href="{{ url_for('.app', app_key=app.key) }}">{{ app }}</a></li>
       {% endfor %}
     </ul>
   {% endif %}

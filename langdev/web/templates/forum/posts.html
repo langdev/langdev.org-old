@@ -2,16 +2,16 @@
 {% from 'pager.html' import render_pager %}
 {% block head %}
   <link rel="alternate"
-    href="{{ config.get('FORUM_FEED_HREF', url_for('atom', _external=True)) }}"
+    href="{{ config.get('FORUM_FEED_HREF', url_for('.atom', _external=True)) }}"
     type="{{ config.get('FORUM_FEED_TYPE', 'application/atom+xml') }}" />
   {% if next %}
-    <link rel="next" href="{{ url_for('posts', next=next.id,
+    <link rel="next" href="{{ url_for('.posts', next=next.id,
                                       limit=limit, view=view) }}" />
   {% endif %}
 {% endblock %}
 {% block body %}
   {% if current_user %}
-    <a href="{{ url_for('write_form') }}"
+    <a href="{{ url_for('.write_form') }}"
        class="btn large">Write a post</a>
   {% endif %}
   {% if view == 'summary' %}
@@ -42,7 +42,7 @@
             </a>
           </td>
           <td class="title">
-            <a href="{{ url_for('post', post_id=post.id) }}">{{ post }}</a>
+            <a href="{{ url_for('.post', post_id=post.id) }}">{{ post }}</a>
           </td>
           <td class="created-at">
             <time datetime="{{ post.created_at.isoformat() }}">
@@ -71,14 +71,14 @@
             {{- post.created_at.date() -}}
           </time></dd>
           <dt class="title">Title:</dt>
-          <dd class="title"><h1><a href="{{ url_for('post', post_id=post.id) }}">
+          <dd class="title"><h1><a href="{{ url_for('.post', post_id=post.id) }}">
             {{- post -}}
           </a></h1></dd>
         </dl>
       </header>
       <section class="content">{{ post.body_html|safe }}</section>
       <footer>
-        <a href="{{ url_for('post', post_id=post.id) -}}
+        <a href="{{ url_for('.post', post_id=post.id) -}}
                  {% if post.replies.first() -%}
                    #comment-{{ post.replies.first().id }}
                  {%- else -%}
@@ -90,5 +90,5 @@
   {% endfor %}
   </div>
   {% endif %}
-  {{ render_pager(pager, limit, 'posts') }}
+  {{ render_pager(pager, limit, '.posts') }}
 {% endblock %}

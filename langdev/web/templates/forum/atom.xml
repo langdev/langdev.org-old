@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <id>{{ url_for('posts', _external=True) }}</id>
+  <id>{{ url_for('.posts', _external=True) }}</id>
   <title>LangDev</title>
-  <link href="{{ url_for('posts', _external=True) }}" rel="alternate" />
+  <link href="{{ url_for('.posts', _external=True) }}" rel="alternate" />
   <link href="{{ request.url }}" rel="self" />
 
   {% for post in posts %}
@@ -10,9 +10,9 @@
       <updated>{{ post.modified_at.isoformat() }}</updated>
     {% endif %}
     <entry>
-      <id>{{ url_for('post', post_id=post.id, _external=True) }}</id>
+      <id>{{ url_for('.post', post_id=post.id, _external=True) }}</id>
       <title>{{ post.title }}</title>
-      <link href="{{ url_for('post', post_id=post.id, _external=True) }}"
+      <link href="{{ url_for('.post', post_id=post.id, _external=True) }}"
             rel="alternate" />
       <author>
         <name>{{ post.author }}</name>

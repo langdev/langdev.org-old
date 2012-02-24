@@ -17,16 +17,15 @@ from flask import *
 from flaskext.wtf import *
 from flaskext.mail import Message
 from sqlalchemy import orm
-import werkzeug.datastructures
 from langdev.user import User
 from langdev.web import before_request, errorhandler, render
 from langdev.objsimplify import Result
 
 
-#: User web pages module.
+#: User web pages blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`working-with-modules`
-user = Module(__name__)
+#: .. seealso:: Flask --- :ref:`modular-applications-with-blueprints`
+user = Blueprint('user', __name__)
 
 
 @before_request
@@ -150,7 +149,7 @@ def signin():
         user = g.session.query(User).filter_by(login=form.login.data)[0]
         set_current_user(user)
         return_url = form.return_url.data or \
-                     url_for('profile', user_login=user.login)
+                     url_for('.profile', user_login=user.login)
         return redirect(return_url)
     return signin_form(form=form)
 
@@ -225,7 +224,7 @@ def signup():
         with g.session.begin():
             g.session.add(user)
         set_current_user(user)
-        return redirect(url_for('profile', user_login=user.login), 302)
+        return redirect(url_for('.profile', user_login=user.login), 302)
     return signup_form(form=form)
 
 
@@ -364,7 +363,7 @@ def request_find_password(user_login):
     user = get_user(user_login, orm.undefer_group('profile'))
     if user.email:
         token, expired_at = generate_token(user)
-        url = url_for('change_password_form',
+        url = url_for('.change_password_form',
                       user_login=user.login, token=token, _external=True)
         expired_at = datetime.datetime.utcfromtimestamp(expired_at)
         msg = Message('[LangDev.org] Change your password: ' + user.login,
