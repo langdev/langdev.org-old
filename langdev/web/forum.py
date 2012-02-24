@@ -4,8 +4,9 @@
 """
 import re
 import math
-from flask import *
-from flaskext.wtf import *
+from flask import (Blueprint, request, g, abort, render_template,
+                   make_response, redirect, url_for)
+from flask.ext import wtf
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from langdev.forum import Post, Comment
 from langdev.web import render
@@ -71,22 +72,22 @@ def atom():
     return response
 
 
-class PostForm(Form):
+class PostForm(wtf.Form):
 
-    title = TextField('Title', validators=[Required()],
-                      description='This will be shown on the list.')
-    body = TextAreaField('Body', validators=[Required()],
-                         description='Markdown format enabled.')
-    sticky = BooleanField('Sticky',
-                          description='Show this post always on top.')
-    submit = SubmitField('Submit')
+    title = wtf.TextField('Title', validators=[wtf.Required()],
+                          description='This will be shown on the list.')
+    body = wtf.TextAreaField('Body', validators=[wtf.Required()],
+                             description='Markdown format enabled.')
+    sticky = wtf.BooleanField('Sticky',
+                              description='Show this post always on top.')
+    submit = wtf.SubmitField('Submit')
 
 
-class CommentForm(Form):
+class CommentForm(wtf.Form):
 
     parent = QuerySelectField('Reply to', allow_blank=True)
-    body = TextAreaField('Comment', validators=[Required()])
-    submit = SubmitField('Submit')
+    body = wtf.TextAreaField('Comment', validators=[wtf.Required()])
+    submit = wtf.SubmitField('Submit')
 
     def fill_comments(self, post):
         self.parent.query = post.comments
@@ -165,7 +166,7 @@ def get_comment(comment_id, post_id=None):
 def write_comment(post_id, comment_id=None):
     if comment_id:
         parent = get_comment(comment_id, post_id)
-        post_object = comment_object.post
+        post_object = parent.post
     else:
         post_object = get_post(post_id)
         parent = None

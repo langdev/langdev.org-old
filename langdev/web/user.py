@@ -13,9 +13,10 @@ import datetime
 import hmac
 import hashlib
 import textwrap
-from flask import *
-from flaskext.wtf import *
-from flaskext.mail import Message
+from flask import (Blueprint, request, session, g, abort, redirect,
+                   url_for, current_app)
+from flask.ext import wtf
+from flask.ext.mail import Message
 from sqlalchemy import orm
 from langdev.user import User
 from langdev.web import before_request, errorhandler, render
@@ -109,18 +110,18 @@ def signout():
     return redirect(return_url)
 
 
-class SignInForm(Form):
+class SignInForm(wtf.Form):
 
-    login = TextField('Login name',
-                      validators=[Required(), Length(2, 45),
-                                  Regexp(User.LOGIN_PATTERN)])
-    password = PasswordField('Password', validators=[Required()])
-    return_url = HiddenField(validators=[Optional()])
-    submit = SubmitField('Login')
+    login = wtf.TextField('Login name',
+                          validators=[wtf.Required(), wtf.Length(2, 45),
+                                      wtf.Regexp(User.LOGIN_PATTERN)])
+    password = wtf.PasswordField('Password', validators=[wtf.Required()])
+    return_url = wtf.HiddenField(validators=[wtf.Optional()])
+    submit = wtf.SubmitField('Login')
 
     def validate_login(form, field):
         if g.session.query(User).filter_by(login=field.data).count() < 1:
-            raise ValidationError('There is no {0}.'.format(field.data))
+            raise wtf.ValidationError('There is no {0}.'.format(field.data))
 
     def validate_password(form, field):
         try:
@@ -129,7 +130,7 @@ class SignInForm(Form):
             pass
         else:
             if user.password != field.data:
-                raise ValidationError('Incorrect password.')
+                raise wtf.ValidationError('Incorrect password.')
 
 
 @user.route('/f/signin')
@@ -154,50 +155,55 @@ def signin():
     return signin_form(form=form)
 
 
-class SignUpForm(Form):
+class SignUpForm(wtf.Form):
 
-    login = TextField('Login name',
-                      validators=[Required(), Length(2, 45),
-                                  Regexp(User.LOGIN_PATTERN)])
-    password = PasswordField(
+    login = wtf.TextField('Login name',
+                          validators=[wtf.Required(), wtf.Length(2, 45),
+                                      wtf.Regexp(User.LOGIN_PATTERN)])
+    password = wtf.PasswordField(
         'Password',
-        validators=[Required(), EqualTo('confirm',
-                                        message='Passwords must match.')]
+        validators=[wtf.Required(),
+                    wtf.EqualTo('confirm', message='Passwords must match.')]
     )
-    confirm = PasswordField('Repeat Password', validators=[Required()])
-    name = TextField('Screen name', validators=[Required(), Length(1, 45)])
-    email = html5.EmailField('Email', validators=[Optional(), Email()])
-    url = html5.URLField('Website', validators=[Optional(), URL()])
+    confirm = wtf.PasswordField('Repeat Password', validators=[wtf.Required()])
+    name = wtf.TextField('Screen name',
+                         validators=[wtf.Required(), wtf.Length(1, 45)])
+    email = wtf.html5.EmailField('Email',
+                                 validators=[wtf.Optional(), wtf.Email()])
+    url = wtf.html5.URLField('Website', validators=[wtf.Optional(), wtf.URL()])
 
     @classmethod
     def get_instance(cls, *args, **kwargs):
         if ('RECAPTCHA_PUBLIC_KEY' in current_app.config and
             'RECAPTCHA_PRIVATE_KEY' in current_app.config):
             class SignUpForm_recaptcha(cls):
-                recaptcha = RecaptchaField()
-                submit = SubmitField('Sign up')
+                recaptcha = wtf.RecaptchaField()
+                submit = wtf.SubmitField('Sign up')
             return SignUpForm_recaptcha(*args, **kwargs)
         class SignUpForm_plain(cls):
-            submit = SubmitField('Sign up')
+            submit = wtf.SubmitField('Sign up')
         return SignUpForm_plain(*args, **kwargs)
 
     def validate_login(form, field):
         if g.session.query(User).filter_by(login=field.data).count():
-            raise ValidationError('{0} is already taken.'.format(field.data))
+            raise wtf.ValidationError(
+                '{0} is already taken.'.format(field.data))
 
 
-class ProfileForm(Form):
+class ProfileForm(wtf.Form):
 
-    password = PasswordField(
+    password = wtf.PasswordField(
         'Password',
-        validators=[Required(), EqualTo('confirm',
-                                        message='Passwords must match.')]
+        validators=[wtf.Required(),
+                    wtf.EqualTo('confirm', message='Passwords must match.')]
     )
-    confirm = PasswordField('Repeat Password', validators=[Required()])
-    name = TextField('Screen name', validators=[Required(), Length(1, 45)])
-    email = html5.EmailField('Email', validators=[Optional(), Email()])
-    url = html5.URLField('Website', validators=[Optional(), URL()])
-    submit = SubmitField('Save')
+    confirm = wtf.PasswordField('Repeat Password', validators=[wtf.Required()])
+    name = wtf.TextField('Screen name',
+                         validators=[wtf.Required(), wtf.Length(1, 45)])
+    email = wtf.html5.EmailField('Email',
+                                 validators=[wtf.Optional(), wtf.Email()])
+    url = wtf.html5.URLField('Website', validators=[wtf.Optional(), wtf.URL()])
+    submit = wtf.SubmitField('Save')
 
 
 @user.route('/f/signup')
@@ -282,16 +288,16 @@ def posts(user_login):
     return render('user/posts', posts, user=user, posts=posts)
 
 
-class PasswordFindingForm(Form):
+class PasswordFindingForm(wtf.Form):
 
-    login = TextField('Login name',
-                      validators=[Required(), Length(2, 45),
-                                  Regexp(User.LOGIN_PATTERN)])
-    submit = SubmitField('Find')
+    login = wtf.TextField('Login name',
+                          validators=[wtf.Required(), wtf.Length(2, 45),
+                                      wtf.Regexp(User.LOGIN_PATTERN)])
+    submit = wtf.SubmitField('Find')
 
     def validate_login(form, field):
         if g.session.query(User).filter_by(login=field.data).count() < 1:
-            raise ValidationError('There is no {0}.'.format(field.data))
+            raise wtf.ValidationError('There is no {0}.'.format(field.data))
 
 
 @user.route('/f/orgot')
@@ -386,15 +392,15 @@ def request_find_password(user_login):
     return response
 
 
-class ChangePasswordForm(Form):
+class ChangePasswordForm(wtf.Form):
 
-    password = PasswordField(
+    password = wtf.PasswordField(
         'Password',
-        validators=[Required(), EqualTo('confirm',
-                                        message='Passwords must match.')]
+        validators=[wtf.Required(),
+                    wtf.EqualTo('confirm', message='Passwords must match.')]
     )
-    confirm = PasswordField('Repeat Password', validators=[Required()])
-    submit = SubmitField('Save')
+    confirm = wtf.PasswordField('Repeat Password', validators=[wtf.Required()])
+    submit = wtf.SubmitField('Save')
 
 
 @user.route('/<user_login>/password-findings/<token>')

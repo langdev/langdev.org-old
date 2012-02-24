@@ -6,8 +6,7 @@ import types
 import datetime
 import plistlib
 import flask
-import langdev.user
-from langdev.objsimplify import *
+from langdev.objsimplify import simplify, camelCase, PascalCase
 
 
 def json(value):
