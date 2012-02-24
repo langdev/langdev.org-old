@@ -1,6 +1,6 @@
 {% from 'macro.html' import only_for_style %}
 {%- macro static_url_for(filename) -%}
-  {%- set url = url_for('.static', filename=filename) -%}
+  {%- set url = url_for('static', filename=filename) -%}
   {%- if config['DEBUG'] -%} {{ url.replace('.min.', '.') }}
   {%- else -%} {{ url }} {%- endif -%}
 {%- endmacro -%}

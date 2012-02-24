@@ -6,16 +6,16 @@ and Jinja2_ also.
 
 .. seealso::
 
-   Module :mod:`langdev.web.home`
+   Blueprint :mod:`langdev.web.home`
       Website home.
 
-   Module :mod:`langdev.web.user`
+   Blueprint :mod:`langdev.web.user`
       User authentications, personal pages, and so on.
 
-   Module :mod:`langdev.web.forum`
+   Blueprint :mod:`langdev.web.forum`
       Forum post pages and comments.
 
-   Module :mod:`langdev.web.thirdparty`
+   Blueprint :mod:`langdev.web.thirdparty`
       Third-party applications.
 
    Module :mod:`langdev.web.pager`
@@ -53,16 +53,16 @@ import sqlalchemy
 import langdev.orm
 
 
-#: The :class:`dict` of modules to be registered by default.
+#: The :class:`dict` of blueprints to be registered by default.
 #: Keys are import names in string, and values are keyword arguments for
-#: :meth:`flask.Flask.register_module()` method. ::
+#: :meth:`flask.Flask.register_blueprint()` method. ::
 #:
-#:     modules = {'module.name:var': {'url_prefix': '/path'},
-#:                'module.name2:var2': {}}
+#:     blueprints = {'module.name:blueprint': {'url_prefix': '/path'},
+#:                   'module.name2:blueprint2': {}}
 #:
-#: It can be extended by ``MODULES`` configuration also::
+#: It can be extended by ``BLUEPRINTS`` configuration also::
 #:
-#:     MODULES = {'module.name:var': {}}
+#:     BLUEPRINTS = {'module.name:var': {}}
 #:
 #: .. seealso::
 #:
@@ -70,15 +70,15 @@ import langdev.orm
 #:       The function that imports an object based on a string, provided by
 #:       Werkzeug_.
 #:
-#:    Flask --- :ref:`working-with-modules`
-#:       Flask_ provides 'module' facilities for large applications.
+#:    Flask --- :ref:`modular-applications-with-blueprints`
+#:       Flask_ provides 'blueprint' facilities for large applications.
 #:
 #: .. _Werkzeug: http://werkzeug.pocoo.org/
 #: .. _Flask: http://flask.pocoo.org/
-modules = {'langdev.web.home:home': {},
-           'langdev.web.user:user': {'url_prefix': '/users'},
-           'langdev.web.forum:forum': {'url_prefix': '/posts'},
-           'langdev.web.thirdparty:thirdparty': {'url_prefix': '/apps'}}
+blueprints = {'langdev.web.home:home': {},
+              'langdev.web.user:user': {'url_prefix': '/users'},
+              'langdev.web.forum:forum': {'url_prefix': '/posts'},
+              'langdev.web.thirdparty:thirdparty': {'url_prefix': '/apps'}}
 
 #: The list of WSGI middlewares to hook in. Its elements are import names in
 #: string. ::
@@ -189,11 +189,11 @@ def create_app(modifier=None, config_filename=None):
         else:
             raise TypeError('modifier must be a callable object, not ' +
                             repr(modifier))
-    mods = dict(modules)
-    mods.update(app.config.get('MODULES', {}))
-    for import_name, kwargs in modules.iteritems():
-        modobj = werkzeug.utils.import_string(import_name)
-        app.register_module(modobj, **(kwargs or {}))
+    mods = dict(blueprints)
+    mods.update(app.config.get('BLUEPRINTS', {}))
+    for import_name, kwargs in mods.iteritems():
+        bp = werkzeug.utils.import_string(import_name)
+        app.register_blueprint(bp, **(kwargs or {}))
     app.before_request_funcs.setdefault(None, []).extend(before_request_funcs)
     app.after_request_funcs.setdefault(None, []).extend(after_request_funcs)
     app.error_handlers.update(error_handlers)
@@ -290,12 +290,10 @@ def method_for(endpoint):
 
     """
     ctx = flask.globals._request_ctx_stack.top
-    if '.' not in endpoint:
-        mod = ctx.request.module
-        if mod is not None:
-            endpoint = mod + '.' + endpoint
-    elif endpoint.startswith('.'):
-        endpoint = endpoint[1:]
+    if endpoint.startswith('.'):
+        bp = ctx.request.blueprint
+        if bp is not None:
+            endpoint = bp + endpoint
     methods = ctx.app.url_map._rules_by_endpoint[endpoint][0].methods
     try:
         return iter(methods.difference(['HEAD', 'OPTIONS'])).next()
