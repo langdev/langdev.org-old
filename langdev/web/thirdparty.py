@@ -87,6 +87,7 @@ def delete_app(app_key):
 def sso(app_key, user_login):
     """Simple SSO API."""
     app = get_app(app_key)
+    require_userinfo = request.values.get('with') == 'userinfo'
     error_ignored = request.values.get('error') == 'ignore'
     success = None
     if User.LOGIN_PATTERN.match(user_login):
@@ -108,5 +109,12 @@ def sso(app_key, user_login):
             success = False
     if success is None:
         success = app.hmac(user.password) == request.values['password']
-    return render('thirdparty/sso', success, success=success)
+    if success and require_userinfo:
+        result = user
+        # workaround to include ``email`` attribute in the response.
+        # see also :func:`langdev.objsimplify.transform`.
+        g.current_user = user
+    else:
+        result = success
+    return render('thirdparty/sso', result, success=success)
 
