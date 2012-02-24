@@ -13,10 +13,10 @@ from langdev.web import render
 import langdev.web.user
 
 
-#: Third-party application pages module.
+#: Third-party application pages blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`working-with-modules`
-thirdparty = Module(__name__)
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
+thirdparty = Blueprint('thirdparty', __name__)
 
 
 class ApplicationForm(Form):
@@ -45,7 +45,7 @@ def register():
         form.populate_obj(app)
         with g.session.begin():
             g.session.add(app)
-        return redirect(url_for('app', app_key=app.key), 302)
+        return redirect(url_for('.app', app_key=app.key), 302)
     return register_form(form=form)
 
 
@@ -80,7 +80,7 @@ def delete_app(app_key):
     langdev.web.user.ensure_signin(app.owner)
     with g.session.begin():
         g.session.delete(app)
-    return redirect(url_for('register'), 302)
+    return redirect(url_for('.register'), 302)
 
 
 @thirdparty.route('/<app_key>/sso/<user_login>', methods=['GET', 'POST'])

@@ -13,10 +13,10 @@ import langdev.web.user
 import langdev.web.pager
 
 
-#: Forum web pages module.
+#: Forum web pages blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`working-with-modules`
-forum = Module(__name__)
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
+forum = Blueprint('forum', __name__)
 
 
 def get_post(post_id):
@@ -117,7 +117,7 @@ def write():
         form.populate_obj(post)
         with g.session.begin():
             g.session.add(post)
-        return redirect(url_for('post', post_id=post.id), 302)
+        return redirect(url_for('.post', post_id=post.id), 302)
     return write_form(form=form)
 
 
@@ -147,7 +147,7 @@ def delete(post_id):
     langdev.web.user.ensure_signin(post.author)
     with g.session.begin():
         g.session.delete(post)
-    return redirect(url_for('posts'), 302)
+    return redirect(url_for('.posts'), 302)
 
 
 def get_comment(comment_id, post_id=None):
@@ -187,7 +187,7 @@ def comment(post_id, comment_id):
     response = render('forum/base', comment, comment=comment)
     if re.match(r'^(application/xhtml\+xml|text/html)\s*($|;)',
                 response.content_type):
-        return redirect(url_for('post', post_id=post_id) +
+        return redirect(url_for('.post', post_id=post_id) +
                         '#comment-{0}'.format(comment.id))
     return response
 
@@ -198,5 +198,5 @@ def delete_comment(post_id, comment_id):
     langdev.web.user.ensure_signin(comment.author)
     with g.session.begin():
         g.session.delete(comment)
-    return redirect(url_for('post', post_id=post_id), 302)
+    return redirect(url_for('.post', post_id=post_id), 302)
 

@@ -2,13 +2,13 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from flask import *
+from flask import Blueprint, redirect, url_for
 
 
-#: Home module.
+#: Home blueprint.
 #:
-#: .. seealso:: Flask --- :ref:`working-with-modules`
-home = Module(__name__)
+#: .. seealso:: Flask --- :ref:`flask:blueprints`
+home = Blueprint('home', __name__)
 
 
 @home.route('/')

@@ -41,7 +41,7 @@
   <h2><abbr title="Single Sign-on">SSO</abbr></h2>
 
   <h3><code>POST
-  {{ url_for('sso', app_key='yourappkey', user_login='userlogin')
+  {{ url_for('.sso', app_key='yourappkey', user_login='userlogin')
    | replace('yourappkey', '<var>YourAppKey</var>')
    | replace('userlogin', '<var>UserLoginOrEmail</var>')
    | safe}}</code></h3>
@@ -65,7 +65,7 @@
   <p>HMAC+SHA1 hashed (when secret key is <code>{{ app.secret_key }}</code>)
      hexadecimal digest of <code>5d41402abc4b2a76b9719d911017c592</code> is:
      <code>{{ app.hmac('5d41402abc4b2a76b9719d911017c592') }}</code>.</p>
-  <pre>POST {{ url_for('sso', app_key=app.key,
+  <pre>POST {{ url_for('.sso', app_key=app.key,
                               user_login=current_user.login) }} HTTP/1.1
 Host: {{ request.host }}
 Accept: application/json
@@ -115,7 +115,7 @@ Content-Type: application/json
 {{ require('langdev.web.serializers').json(current_user) }}</pre>
 
   <h2>Delete</h2>
-  {% call render_raw_form('delete_app', app_key=app.key) %}
+  {% call render_raw_form('.delete_app', app_key=app.key) %}
     <input type="submit" value="Delete" />
   {% endcall %}
   <script>
